@@ -1,0 +1,41 @@
+{% extends 'dashboard/base.html' %}
+
+{% block headstyles %}
+  <style>
+    .modal {
+      transition: opacity 0.25s ease;
+    }
+    body.modal-active {
+      overflow-x: hidden;
+      overflow-y: visible !important;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+
+<h3 class="text-gray-700 text-3xl font-medium">Categories</h3>
+
+    <div class="mt-4">
+        <button class="bg-black hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" data-toggle="modal" data-target="#newCategoryModal">
+            +  New Category
+        </button>
+
+        {% include 'dashboard/categories/new_category_modal.html' %}
+        {% include 'dashboard/categories/category_block.html' %}
+
+    </div>
+
+
+
+{% endblock %}
+
+{% block bodylivescripts %}
+
+$(document).ready(function(){
+  $("#categories-menu").addClass("bg-gray-600 bg-opacity-25 text-gray-100 border-gray-100");
+  $("#categories-menu").removeClass("border-gray-900 text-gray-500 hover:bg-gray-600 hover:bg-opacity-25 hover:text-gray-100");
+});
+
+
+{% endblock %}

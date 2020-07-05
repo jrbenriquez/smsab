@@ -1,0 +1,41 @@
+{% load mptt_tags %}
+
+<div class="mt-8">
+
+<div class="card card-body">
+    <ul class="px-5 root">
+        {% recursetree categories %}
+            {% with category=node %}
+                {% if not category.is_leaf_node %}
+                <div class="flex justify-between my-2 border-b-2 border-gray-600">
+                    <div>
+                    <a class="text-gray-900" data-toggle="collapse" href="#collapse-{{category.id}}" role="button" aria-expanded="false" aria-controls="collapseExample">
+                        > {{ category.name }}
+                    </a>
+                    </div>
+                    <div>
+                        <i class="fa fa-trash" aria-hidden="true"></i>
+                    </div>
+                </div>
+                    <div class="collapse ml-4" id="collapse-{{category.id}}">
+                        {{ children }}
+                    </div>
+                {% else %}
+                <div class="flex justify-between my-2">
+                    <div>
+                        <a class="text-gray-900" data-toggle="collapse" href="#collapse-{{category.id}}" role="button" aria-expanded="false" aria-controls="collapseExample">
+                            {{ category.name }}
+                        </a>
+                    </div>
+                    <div>
+                        <i class="fa fa-trash" aria-hidden="true"></i>
+                    </div>
+                </div>
+                {% endif %}
+            </li>
+            {% endwith %}
+        {% endrecursetree %}
+    </ul>
+</div>
+
+</div>

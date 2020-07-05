@@ -1,0 +1,203 @@
+{% load mptt_tags %}
+
+var inputTag = {
+  delimiters: ['${', '}'],
+  components: { "v-tags-input": VoerroTagsInput },
+  props: ['tagId'],
+  data () {
+    return {
+      tags: []
+    }
+  },
+  methods: {
+    tagsUpdated: function(){
+        var tagIdentifier = this.$props.tagId
+        var emittedArray = [tagIdentifier, this.tags]
+
+        this.$emit('tags-updated', JSON.stringify(emittedArray))
+    }
+  },
+  computed: {
+  },
+  watch: {
+        tags: function(oldTags, newTags) {
+            this.tagsUpdated()
+        }
+  },
+  template: '<v-tags-input add-tags-on-comma :element-id="tagId" v-model="tags"></v-tags-input>'
+}
+
+var parameterInput = {
+  delimiters: ['${', '}'],
+  components: { "tags-input": inputTag },
+  data: function () {
+    return {
+      adding: false,
+      parameter_data: {},
+      parameters: {},
+      ptemplates: [{% for t in ptemplates %} { 'name': "{{t.name}}", 'id': {{t.id}} }, {% endfor %}]
+    }
+  },
+  computed: {
+  },
+  methods: {
+    parameterList: function(){
+     var paramList = []
+     for (idx in this.parameter_data){
+        var typeList = []
+        for (v in this.parameter_data[idx]) {
+            var value = this.parameter_data[idx][v]
+            paramObject = {}
+            paramObject[idx] = value
+            typeList.push(paramObject)
+        }
+        paramList.push(typeList)
+     }
+     return paramList
+    },
+    updateParams: function(updatedTags){
+        var tagsObject = JSON.parse(updatedTags)
+        var param_template_id = tagsObject[0]
+        var param_tag_values = tagsObject[1]
+        var param_data = []
+        for (tag in param_tag_values) {
+//            console.log(param_tag_values[tag].value)
+            param_data.push(param_tag_values[tag].value)
+        }
+        this.parameter_data[param_template_id] = param_data
+        var emittedArray = this.parameterList()
+        this.$emit('new-parameter', JSON.stringify(emittedArray))
+    },
+    goToEditingMode: function(){
+        this.adding = true
+    },
+    exitEditingMode: function(){
+        this.adding = false
+    },
+    addParam: function(){
+        var param_selected = this.$refs["select-parameter-template"].value
+        var param_array = param_selected.split("|")
+        var param_name = param_array[0]
+        var param_id = param_array[1]
+        this.parameters[param_id] = param_name
+        $('.parameter-tags').tagsInput();
+        this.exitEditingMode()
+
+
+    }
+  },
+  template: '<div><div class="flex justify-around my-2" v-for="(value, id) in parameters" :key="id"><div><label class="mx-2" :for="`${id}-value`">${value}s Available:</label></div><div> <tags-input v-on:tags-updated="updateParams($event)" :tag-id="id"></tags-input> </div> <div><button class="btn btn-danger mx-3" v-on:click="">Remove</button></div></div><button type="button" v-if="!adding" class="btn btn-secondary mx-3" v-on:click="goToEditingMode">Add Parameters</button> <div v-if="adding" class="flex py-2 justify-between"><div class="w-full px-2"><select id="select-parameter-template" ref="select-parameter-template" class="custom-select"><option v-for="t in ptemplates" v-if="!(t.id in parameters)" :key="t.name" :value="t.name + `|` + t.id ">${t.name}</option></select></div><div class=""><button v-on:click="addParam" class="btn btn-secondary mx-1" type="button">Add</button></div><div class=""><button v-on:click="exitEditingMode" class="btn btn-secondary mx-1" type="button">Cancel</button></div></div></div>'
+}
+
+
+var mainWidget = new Vue({
+  el: '#app',
+  components: {
+    'parameter-input': parameterInput,
+  },
+  delimiters: ['${', '}'],
+  data: {
+    sideBarOpen: false,
+    dropdownOpen: false,
+    info: '',
+    recentParams: {}
+  },
+  computed: {
+    getCsrfToken() {
+        try {
+            return document.querySelector('[name="csrfmiddlewaretoken"]').value;
+            }
+        catch {
+            return null
+        }
+    }
+  },
+  methods: {
+    updateRecentParams: function(updatedParams){
+        console.log('HABADOOO')
+        var paramsArray = JSON.parse(updatedParams)
+        this.recentParams = paramsArray
+    },
+    toggleSideBar: function() {
+        this.sideBarOpen = !this.sideBarOpen
+    },
+    toggleDropDown: function() {
+        this.dropdownOpen = !this.dropdownOpen
+    },
+    createCategory: function() {
+        var categoryName = this.$refs["cat-name"].value
+        var categoryParent = this.$refs["cat-parent"].value
+        var categoryDescription = this.$refs["cat-description"].value
+        var csrftoken = this.getCsrfToken
+
+        axiosConfig = {headers: {
+            'X-CSRFToken': csrftoken
+        }}
+
+        axios.post('/api/v1/category/', {
+            name: categoryName,
+            parent: categoryParent,
+            description: categoryDescription
+        }, axiosConfig).then(response => (console.log(response.data)))
+          .catch(error => console.log(error))
+          .finally(() => {
+            location.reload();
+            alert('Success!');
+          })
+    },
+    createItem: function() {
+        console.log(this.recentParams)
+        var itemCategory = this.$refs["item-category"].value
+        var itemName = this.$refs["item-name"].value
+        var itemDescription = this.$refs["item-description"].value
+        var itemPhoto = this.$refs["item-photo"].files[0]
+        var itemPrice = this.$refs["item-price"].value
+        var itemQuantity = this.$refs["item-qty"].value
+        var itemLocation = this.$refs["item-location"].value
+        var csrftoken = this.getCsrfToken
+        var itemForm = new FormData();
+        itemForm.set('category', itemCategory)
+        itemForm.set('name', itemName)
+        itemForm.set('description', itemDescription)
+        itemForm.set('price', itemPrice)
+        itemForm.set('photo', itemPhoto)
+        itemForm.set('quantity', itemQuantity)
+        itemForm.set('location', itemLocation)
+        itemForm.set('param_data', JSON.stringify(this.recentParams))
+
+        axiosConfig = {headers: {
+            'X-CSRFToken': csrftoken
+        }}
+
+        axios.post('/api/v1/item/', itemForm, axiosConfig)
+        .then(function (response) {
+            // handle success
+            alert('Success')
+          })
+          .catch(error => console.log(error.response))
+    },
+    createLocation: function() {
+        var locationName = this.$refs["loc-name"].value
+        var locationParent = this.$refs["loc-parent"].value
+        var locationDescription = this.$refs["loc-description"].value
+        var locationAddress = this.$refs["loc-address"].value
+        var csrftoken = this.getCsrfToken
+
+        axiosConfig = {headers: {
+            'X-CSRFToken': csrftoken
+        }}
+
+        axios.post('/api/v1/location/', {
+            name: locationName,
+            parent: locationParent,
+            description: locationDescription,
+            address: locationAddress
+        }, axiosConfig).then(response => (console.log(response.data)))
+          .catch(error => console.log(error))
+          .finally(() => {
+                        location.reload();
+                        alert('Success!');
+                        })
+    },
+  },
+})

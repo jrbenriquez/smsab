@@ -1,0 +1,98 @@
+{% load mptt_tags %}
+
+<div class="modal fade" id="newItemModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">New Item</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" class="custom-select" ref="item-category">
+              <option selected value disabled>None</option>
+              {% recursetree categories %}
+                {% with category=node %}
+                  <option value="{{category.id}}">{{ category.get_full_name }}</option>
+                    {% if not category.is_leaf_node %}
+                            {{ children }}
+                    {% endif %}
+                </li>
+                {% endwith %}
+            {% endrecursetree %}
+            </select>
+<!--            <small id="categoryHelp" class="form-text text-muted"></small>-->
+          </div>
+          <div class="form-group">
+            <label for="item-name">Name*</label>
+            <input type="text" class="form-control" id="item-name" ref="item-name">
+          </div>
+          <div class="form-group">
+            <label for="item-description">Description</label>
+            <input type="text" class="form-control" id="item-description" ref="item-description">
+          </div>
+          <div class="form-group">
+              <label>Upload Image</label>
+              <div class="input-group">
+                  <span class="input-group-btn">
+                      <span class="btn btn-secondary btn-file">
+                          Browse… <input type="file" id="imgInp" ref="item-photo">
+                      </span>
+                  </span>
+                  <input type="text" class="form-control" readonly>
+              </div>
+              <img id='img-upload'/>
+          </div>
+          <div class="form-group">
+            <label for="item-price">Price*</label>
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text">₱</span>
+              </div>
+              <input type="number" class="form-control" id="item-price" ref="item-price">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="item-qty">Quantity</label>
+            <div class="input-group">
+              <input type="number" min="1"
+                     ref="item-qty"
+                  step="1"
+                  onkeypress="return event.charCode >= 48 && event.charCode <= 57" class="form-control" id="item-qty">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="item-location">Location*</label>
+            <select id="item-location" ref="item-location" class="custom-select">
+              <option selected value>None</option>
+              {% recursetree locations %}
+                {% with location=node %}
+                  <option value="{{location.id}}">{{ location.get_full_name }}</option>
+                    {% if not location.is_leaf_node %}
+                            {{ children }}
+                    {% endif %}
+                </li>
+                {% endwith %}
+            {% endrecursetree %}
+            </select>
+          </div>
+<!--          <div class="form-group form-check">-->
+<!--            <input type="checkbox" class="form-check-input" id="exampleCheck1">-->
+<!--            <label class="form-check-label" for="exampleCheck1">Check me out</label>-->
+<!--          </div>-->
+            <parameter-input v-on:new-parameter="updateRecentParams($event)"></parameter-input>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button v-on:click="createItem" type="button" class="btn btn-primary">Create Item</button>
+      </div>
+    </div>
+  </div>
+</div>

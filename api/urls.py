@@ -1,4 +1,4 @@
-"""tookie URL Configuration
+"""smsab URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.0/topics/http/urls/
@@ -13,13 +13,18 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
-from authentication.views import set_cookie
+from django.conf.urls import url, include
+from rest_framework.routers import DefaultRouter
+from .views import categories, locations, items
 
+
+router = DefaultRouter()
+
+router.register(r'category', categories.CategoryViewSet, 'categories')
+router.register(r'location', locations.LocationViewSet, 'locations')
+router.register(r'item', items.ItemViewSet, 'item')
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('demo.urls')),
-    path('auth/', include('authentication.urls')),
-    path('authorize', set_cookie, name='set-cookie')
+    url(r'^', include(router.urls)),
 ]
+
+app_name = 'api'
