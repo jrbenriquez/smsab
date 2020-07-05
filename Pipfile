@@ -31,6 +31,8 @@ Pygments = "==2.6.1"
 django-mptt = "*"
 whitenoise = "*"
 pillow = "*"
+django-environ = "*"
+dj-database-url = "*"
 
 [requires]
 python_version = "3.8"

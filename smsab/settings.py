@@ -11,6 +11,19 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import dj_database_url
+import environ
+
+
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False),
+    NO_DOT_ENV_FILE=(bool, False)
+)
+# reading .env file
+NO_DOT_ENV_FILE = env('NO_DOT_ENV_FILE')
+if not NO_DOT_ENV_FILE:
+    environ.Env.read_env('.env')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,10 +33,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '77am6o+c34w_9_q_%%-m9@fqmzf*ngh(a0h-3x4-!z5arxccz3'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
 AUTH_USER_MODEL = 'authentication.User'
 
@@ -99,6 +112,8 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+DATABASES['default'] = dj_database_url.config(conn_max_age=600)
 
 
 # Password validation
