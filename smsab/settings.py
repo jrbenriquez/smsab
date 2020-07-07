@@ -18,7 +18,8 @@ import environ
 env = environ.Env(
     # set casting, default value
     DEBUG=(bool, False),
-    NO_DOT_ENV_FILE=(bool, False)
+    NO_DOT_ENV_FILE=(bool, False),
+    ALLOWED_HOSTS=(list, [])
 )
 # reading .env file
 NO_DOT_ENV_FILE = env('NO_DOT_ENV_FILE')
@@ -40,7 +41,7 @@ DEBUG = env('DEBUG')
 
 AUTH_USER_MODEL = 'authentication.User'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 
 PUBLIC_PATH = "http://localhost:8000"
 FRONTEND_URL = "http://localhost:8888"
