@@ -44,6 +44,8 @@ class Item(MPTTModel, UUIDModel, TimeStampedModel):
     @property
     def get_photo(self):
         obj = self.photos.last()
+        if not obj:
+            return 'https://placeimg.com/480/480/tech'
         return obj.photo.url
 
     @property
