@@ -30,8 +30,7 @@ class EntryPointViewSet(ModelViewSet):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-
-def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         data = request.data
         user_id = data.get('user_id')
 
