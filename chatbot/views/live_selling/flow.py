@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from chatbot.models.users import MessengerProfile
-from chatbot.permissions.manychat import ManyChatAppPermission
+from chatbot.permissions.manychat import ManyChatAppPermission, ManyChatAppGETPermission
 from chatbot.serializers.users import MessengerProfileSerializer
 from chatbot.responses.manychat.response import response_template
 from chatbot.responses.manychat.messages import add_message_text
@@ -17,7 +17,7 @@ class EntryPointViewSet(ModelViewSet):
     http_method_names = ['post', 'get']
 
     @action(methods=['get'], detail=True,
-            url_path='greeting', url_name='greeting')
+            url_path='greeting', url_name='greeting', permission_classes=ManyChatAppGETPermission)
     def greeting(self, request, pk=None):
         response_data = {
             "version": "v2",
