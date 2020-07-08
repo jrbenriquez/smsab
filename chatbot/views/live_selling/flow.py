@@ -17,7 +17,7 @@ class EntryPointViewSet(ModelViewSet):
     http_method_names = ['post', 'get']
 
     @action(methods=['get'], detail=True,
-            url_path='greeting', url_name='greeting', permission_classes=ManyChatAppGETPermission)
+            url_path='greeting', url_name='greeting', permission_classes=[ManyChatAppGETPermission])
     def greeting(self, request, pk=None):
         response_data = {
             "version": "v2",
