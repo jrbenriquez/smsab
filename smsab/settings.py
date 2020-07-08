@@ -19,7 +19,8 @@ env = environ.Env(
     # set casting, default value
     DEBUG=(bool, False),
     NO_DOT_ENV_FILE=(bool, False),
-    ALLOWED_HOSTS=(list, [])
+    ALLOWED_HOSTS=(list, []),
+    MANYCHAT_APP_IDS=(list, [])
 )
 # reading .env file
 NO_DOT_ENV_FILE = env('NO_DOT_ENV_FILE')
@@ -61,7 +62,8 @@ INSTALLED_APPS = [
     'demo.apps.DemoConfig',
     'authentication.apps.AuthorizationConfig',
     'mptt',
-    'inventory'
+    'inventory',
+    'chatbot'
 ]
 
 CORS_ORIGIN_WHITELIST = [
@@ -182,4 +184,8 @@ REST_FRAMEWORK = {
 }
 
 REST_FRAMEWORK_TOKEN_SECONDS_EXPIRY = 1800
+
+MANYCHAT_APP_IDS = env('MANYCHAT_APP_IDS')
+CHATBOT_HASH = env('CHATBOT_HASH')
+
 
