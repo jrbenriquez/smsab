@@ -25,7 +25,10 @@ message_types = [
 
 
 def add_message_text(response_data, message):
-    current_messages = response_data['content']['messages']
+    if 'messages' in response_data['content']:
+        current_messages = response_data['content']['messages']
+    else:
+        current_messages = []
     text_template = messages_format[TEXT]
 
     text_template["text"] = message
