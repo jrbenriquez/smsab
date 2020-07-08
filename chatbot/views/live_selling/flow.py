@@ -26,7 +26,28 @@ class EntryPointViewSet(ModelViewSet):
         # Write custom greeting with user_id
         message = f'Hey there {user_id}'
 
-        response_data = add_message_text({"version": "v2", "content": {}}, message)
+        #response_data = add_message_text({"version": "v2", "content": {}}, message)
+
+        response_data = {
+            "version": "v2",
+            "content": {
+            "messages": [
+              {
+                "type": "text",
+                "text": "simple text with button",
+                "buttons": [
+                  {
+                    "type": "url",
+                    "caption": "External link",
+                    "url": "https://manychat.com"
+                  }
+                ]
+              }
+            ],
+            "actions": [],
+            "quick_replies": []
+            }
+            }
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
