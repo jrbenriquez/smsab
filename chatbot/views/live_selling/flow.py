@@ -26,7 +26,7 @@ class EntryPointViewSet(ModelViewSet):
         # Write custom greeting with user_id
         message = f'Hey there {user_id}'
 
-        response_data = add_message_text(response_template, message)
+        response_data = add_message_text({"version": "v2", "content": {}}, message)
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
