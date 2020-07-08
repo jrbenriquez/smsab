@@ -19,29 +19,19 @@ class EntryPointViewSet(ModelViewSet):
     @action(methods=['get'], detail=True,
             url_path='greeting', url_name='greeting', permission_classes=[ManyChatAppGETPermission])
     def greeting(self, request, pk=None):
-        response_data = {
-            "version": "v2",
-            "content": {
-            "messages": [
-              {
-                "type": "text",
-                "text": "simple text with button",
-                "buttons": [
-                  {
-                    "type": "url",
-                    "caption": "External link",
-                    "url": "https://manychat.com"
-                  }
-                ]
-              }
-            ],
-            "actions": [],
-            "quick_replies": []
-            }
-            }
-        return Response(response_data)
+        profile = MessengerProfile(user_id=pk)
 
-    def create(self, request, *args, **kwargs):
+        # Get many chat template
+
+        # Write custom greeting with user_id
+        message = f'Hey there {pk}'
+
+        response_data = add_message_text({"version": "v2", "content": {}}, message)
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+def create(self, request, *args, **kwargs):
         data = request.data
         user_id = data.get('user_id')
 
@@ -52,28 +42,8 @@ class EntryPointViewSet(ModelViewSet):
         # Write custom greeting with user_id
         message = f'Hey there {user_id}'
 
-        #response_data = add_message_text({"version": "v2", "content": {}}, message)
+        response_data = add_message_text({"version": "v2", "content": {}}, message)
 
-        response_data = {
-            "version": "v2",
-            "content": {
-            "messages": [
-              {
-                "type": "text",
-                "text": "simple text with button",
-                "buttons": [
-                  {
-                    "type": "url",
-                    "caption": "External link",
-                    "url": "https://manychat.com"
-                  }
-                ]
-              }
-            ],
-            "actions": [],
-            "quick_replies": []
-            }
-            }
 
         return Response(response_data, status=status.HTTP_200_OK)
 
