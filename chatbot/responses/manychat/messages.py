@@ -16,7 +16,7 @@ messages_format = {
           {
             "title": "Card title",
             "subtitle": "",
-            "image_url": "",
+            "image_url": "https://placeimg.com/640/480/any",
             "action_url": "",
             "buttons": []
           }
