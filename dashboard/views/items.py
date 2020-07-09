@@ -1,9 +1,10 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from inventory.models.categories import Category
 from inventory.models.locations import Location
 from inventory.models.items import ParameterTemplate, Item
 
-
+@login_required()
 def item_list(request):
     items = Item.objects.all()
     categories = Category.objects.all()
