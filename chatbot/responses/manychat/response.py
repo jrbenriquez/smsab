@@ -1,6 +1,7 @@
 
-response_template = {
-  "version": "v2",
-  "content": {
-  }
-}
+def response_template():
+    return {
+        "version": "v2",
+        "content": {
+        }
+    }

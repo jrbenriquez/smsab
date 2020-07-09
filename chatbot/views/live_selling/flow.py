@@ -7,7 +7,7 @@ from chatbot.models.users import MessengerProfile
 from chatbot.permissions.manychat import ManyChatAppPermission, ManyChatAppGETPermission
 from chatbot.serializers.users import MessengerProfileSerializer
 from chatbot.responses.manychat.response import response_template
-from chatbot.responses.manychat.messages import add_message_text
+from chatbot.responses.manychat.messages import add_message_text, add_message_card
 
 
 class EntryPointViewSet(ModelViewSet):
@@ -17,16 +17,23 @@ class EntryPointViewSet(ModelViewSet):
     http_method_names = ['post', 'get']
 
     @action(methods=['get'], detail=True,
-            url_path='greeting', url_name='greeting', permission_classes=[ManyChatAppGETPermission])
-    def greeting(self, request, pk=None):
+            url_path='main', url_name='main', permission_classes=[ManyChatAppGETPermission])
+    def main(self, request, pk=None):
         profile = MessengerProfile(user_id=pk)
 
         # Get many chat template
 
-        # Write custom greeting with user_id
-        message = f'Hey there {pk}'
+        first_name = profile.first_name
+        if not first_name:
+            first_name = "Shopper"
 
-        response_data = add_message_text({"version": "v2", "content": {}}, message)
+        # Write custom greeting with user_id
+        message = f'Hey there {first_name}!'
+
+        response_data = add_message_text(response_template(), message)
+
+        response_data = add_message_card(response_data,
+                                         title="Welcome to SM Shop and Bags")
 
         return Response(response_data, status=status.HTTP_200_OK)
 
@@ -41,8 +48,7 @@ class EntryPointViewSet(ModelViewSet):
         # Write custom greeting with user_id
         message = f'Hey there {user_id}'
 
-        response_data = add_message_text({"version": "v2", "content": {}}, message)
-
+        response_data = add_message_text(response_template(), message)
 
         return Response(response_data, status=status.HTTP_200_OK)
 
