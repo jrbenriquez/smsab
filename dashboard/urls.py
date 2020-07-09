@@ -16,16 +16,22 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from authentication.views import set_cookie
-from dashboard.views.core import dashboard_home
+from dashboard.views.core import dashboard_home, login, logout
 from dashboard.views.items import item_list
 from dashboard.views.categories import categories
 from dashboard.views.locations import locations
+from dashboard.views.events import events
+from dashboard.views.orders import orders
 
 urlpatterns = [
     path('', dashboard_home, name="dashboard_home"),
-    path('items', item_list, name="items"),
-    path('categories', categories, name="categories"),
-    path('locations', locations, name="locations"),
+    path('login/', login, name="login"),
+    path('logout/', logout, name="logout"),
+    path('items/', item_list, name="items"),
+    path('categories/', categories, name="categories"),
+    path('locations/', locations, name="locations"),
+    path('events/', events, name="events"),
+    path('orders/', orders, name="orders"),
 ]
 
 app_name = 'dashboard'

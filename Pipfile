@@ -36,6 +36,7 @@ dj-database-url = "*"
 gunicorn = "*"
 psycopg2 = "==2.8.4"
 psycopg2-binary = "*"
+django-simple-history = "*"
 
 [requires]
 python_version = "3.8"

@@ -98,7 +98,7 @@ class ItemStock(MPTTModel, UUIDModel, TimeStampedModel):
     item = models.ForeignKey(Item, related_name='stocks', on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=11, decimal_places=2)
     location = models.ForeignKey('inventory.Location', on_delete=models.CASCADE, null=True, blank=True)
-    quantity = models.PositiveIntegerField(default=0)
+    quantity = models.DecimalField(max_digits=11, decimal_places=2, default=0)
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
 
     class MPTTMeta:

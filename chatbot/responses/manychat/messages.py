@@ -4,6 +4,7 @@ VIDEO = 'video'
 AUDIO = 'audio'
 FILE = 'file'
 CARDS = 'cards'
+CARD_ELEMENTS = "card_elements"
 
 messages_format = {
     TEXT: {
@@ -22,7 +23,14 @@ messages_format = {
           }
         ],
         "image_aspect_ratio": "horizontal"
-      }
+      },
+    CARD_ELEMENTS: {
+            "title": "Card title",
+            "subtitle": "",
+            "image_url": "https://placeimg.com/640/480/any",
+            "action_url": "",
+            "buttons": []
+    }
 }
 
 
@@ -54,6 +62,20 @@ def append_messages(response_data, current_messages, message_block):
     return response_data
 
 
+def create_card_data(title, subtitle=None, image_url=None, action_url=None):
+    text_template = messages_format[CARD_ELEMENTS]
+    text_template['title'] = title
+    text_template['title'] = title
+    if subtitle:
+        text_template['subtitle'] = subtitle
+    if image_url:
+        text_template['image_url'] = image_url
+    if action_url:
+        text_template['action_url'] = action_url
+
+    return text_template
+
+
 def add_message_text(response_data, message):
     current_messages = get_message_from_data(response_data)
     text_template = messages_format[TEXT]
@@ -63,6 +85,15 @@ def add_message_text(response_data, message):
     current_messages.append(text_template)
 
     response_data['content']['messages'] = current_messages
+
+    return response_data
+
+
+def add_message_gallery(response_data, card_data):
+    current_messages = get_message_from_data(response_data)
+    message_block = messages_format[CARDS]
+
+    response_data['content']['messages']['elements'] = card_data
 
     return response_data
 

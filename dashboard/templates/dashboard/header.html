@@ -1,4 +1,4 @@
-<header class="flex justify-between items-center py-4 px-6 bg-white border-b-4 border-indigo-600">
+<header class="flex justify-between items-center py-4 px-6 bg-white border-b-4 border-grey-600">
     <div class="flex items-center">
         <button v-on:click="toggleSideBar" class="text-gray-500 focus:outline-none lg:hidden">
             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -13,7 +13,7 @@
                 </svg>
             </span>
 
-            <input class="form-input w-32 sm:w-64 rounded-md pl-10 pr-4 focus:border-indigo-600" type="text" placeholder="Search">
+            <input class="form-input w-32 sm:w-64 rounded-md pl-10 pr-4 focus:border-grey-600" type="text" placeholder="Search">
         </div>
     </div>
 
@@ -32,9 +32,9 @@
             <div v-if="dropdownOpen" v-on:click="toggleDropDown" class="fixed inset-0 h-full w-full z-10"></div>
 
             <div v-if="dropdownOpen" class="absolute right-0 mt-2 py-2 w-48 bg-white rounded-md shadow-xl z-20">
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-600 hover:text-white">Profile</a>
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-600 hover:text-white">Products</a>
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-600 hover:text-white">Logout</a>
+<!--                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-600 hover:text-white">Profile</a>-->
+<!--                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-600 hover:text-white">Products</a>-->
+                <a href="#" onclick="logoutUser()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-600 hover:text-white">Logout</a>
             </div>
         </div>
     </div>

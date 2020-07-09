@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 import dj_database_url
 import environ
+from django.shortcuts import reverse
 
 
 env = environ.Env(
@@ -40,6 +41,9 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
+LOGIN_URL = '/dashboard/login'
+REDIRECT_URL = '/dashboard/'
+
 AUTH_USER_MODEL = 'authentication.User'
 
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
@@ -62,6 +66,7 @@ INSTALLED_APPS = [
     'demo.apps.DemoConfig',
     'authentication.apps.AuthorizationConfig',
     'mptt',
+    'simple_history',
     'inventory',
     'chatbot'
 ]
@@ -83,6 +88,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware'
 ]
 
 ROOT_URLCONF = 'smsab.urls'

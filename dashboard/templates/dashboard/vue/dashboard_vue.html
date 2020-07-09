@@ -142,7 +142,6 @@ var mainWidget = new Vue({
           .catch(error => console.log(error))
           .finally(() => {
             location.reload();
-            alert('Success!');
           })
     },
     createItem: function() {
@@ -172,7 +171,7 @@ var mainWidget = new Vue({
         axios.post('/api/v1/item/', itemForm, axiosConfig)
         .then(function (response) {
             // handle success
-            alert('Success')
+            location.reload();
           })
           .catch(error => console.log(error.response))
     },
