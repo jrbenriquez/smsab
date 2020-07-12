@@ -112,7 +112,7 @@ def add_button_to_element(element, button_type="url", caption=None, *args, **kwa
     else:
         raise ValidationError('Button type not yet supported')
 
-    button_list = element.get('buttons', [])
+    button_list = list(element.get('buttons', []))
     button_list.append(button_data)
 
     element['buttons'] = button_list
