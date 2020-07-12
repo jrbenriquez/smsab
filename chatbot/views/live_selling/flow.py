@@ -134,8 +134,9 @@ class EntryPointViewSet(ModelViewSet):
                     "field_name": "last_browsed_item",
                     "value": f"{last_product.id}"
                 }
-
-                response_data = add_action_to_element(response_data, action="set_field_value", **action_data)
+                content = response_data.copy()['content']
+                content = add_action_to_element(content, action="set_field_value", **action_data)
+                response_data['content'] = content
                 return Response(response_data, status=status.HTTP_200_OK)
 
         else:
