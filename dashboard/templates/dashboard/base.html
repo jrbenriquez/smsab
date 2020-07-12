@@ -27,15 +27,30 @@
     <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
     <script src="{% static 'js/dashboard_main.js' %}"></script>
 
-
     {% block headscripts %}{% endblock %}
     {% block headstyles %}{% endblock %}
+    <style>
+        .loader {
+          border-top-color: #3498db;
+          -webkit-animation: spinner 1.5s linear infinite;
+          animation: spinner 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spinner {
+          0% { -webkit-transform: rotate(0deg); }
+          100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spinner {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
 <div id="app">
     <div class="flex h-screen bg-gray-200 font-roboto">
         {% include 'dashboard/sidebar.html' %}
-
         <div class="flex-1 flex flex-col overflow-hidden">
             {% include 'dashboard/header.html' %}
 
@@ -49,6 +64,8 @@
 </div>
 {% block bodyscripts %}{% endblock %}
 <script>
+
+
     function logoutUser(){
 
         $.ajax({

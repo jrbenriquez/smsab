@@ -18,6 +18,21 @@ class Event(TimeStampedModel):
             return 'https://placeimg.com/480/480/tech'
         return obj.photo.url
 
+    def add_item(self, item):
+        relation, created = EventItemRelation.objects.get_or_create(
+            item=item,
+            event=self
+        )
+        return relation
+
+    def remove_item(self, item):
+        relation, created = EventItemRelation.objects.get_or_create(
+            item=item,
+            event=self
+        )
+        relation.delete()
+        return relation
+
 
 class EventPhoto(TimeStampedModel):
     event = models.ForeignKey(Event, related_name='photos', on_delete=models.CASCADE)

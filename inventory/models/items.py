@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
-
+from simple_history.models import HistoricalRecords
 from inventory.utils.uploaders import upload_item_photo
 from .core import UUIDModel, TimeStampedModel
 from .categories import Category
@@ -53,6 +53,11 @@ class Item(MPTTModel, UUIDModel, TimeStampedModel):
         variation_count = self.stocks.count()
         return variation_count
 
+    @property
+    def get_parameter_names(self):
+        stocks = self.stocks.all()
+        return list(set(stocks.values_list('parameters__parameter__name', flat=True)))
+
     def create_item_stocks(self,
                     serializer, price, quantity,
                     category_id, location_id,
@@ -94,12 +99,12 @@ class Item(MPTTModel, UUIDModel, TimeStampedModel):
         return self.stocks.all()
 
 
-class ItemStock(MPTTModel, UUIDModel, TimeStampedModel):
+class ItemStock(UUIDModel, TimeStampedModel):
     item = models.ForeignKey(Item, related_name='stocks', on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=11, decimal_places=2)
     location = models.ForeignKey('inventory.Location', on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.DecimalField(max_digits=11, decimal_places=2, default=0)
-    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    history = HistoricalRecords()
 
     class MPTTMeta:
         order_insertion_by = ['price']

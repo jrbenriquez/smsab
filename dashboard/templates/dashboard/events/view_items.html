@@ -1,0 +1,187 @@
+{% extends 'dashboard/base.html' %}
+
+{% load static %}
+{% load humanize %}
+{% block headscripts %}
+<script type="text/javascript" src="{% static 'plugins/moment/moment.js' %}"></script>
+<script type="text/javascript" src="{% static 'plugins/tempusdominus/tempus.js' %}"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.0-alpha14/css/tempusdominus-bootstrap-4.min.css" />
+{% endblock %}
+
+{% block headstyles %}
+
+  <style>
+    .modal {
+      transition: opacity 0.25s ease;
+    }
+    body.modal-active {
+      overflow-x: hidden;
+      overflow-y: visible !important;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+
+<h3 class="text-gray-700 text-medium font-medium"> <a href="{% url 'dashboard:events' %}" class="font-medium no-underline text-gray-600 hover:text-gray-900 hover:no-underline">Events</a><span class="text-lg m-auto"> > {{event.name}}</span> <span class="text-lg m-auto"> > Add Items</span></h3>
+    {% if errors %}
+    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+      <p class="font-bold">Error</p>
+        {% for error in errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="mt-8">
+        <div class="sm:flex xs:flex-col mt-4">
+            <div class="sm:w-1/1 md:w-2/3 p-6 bg-white rounded-md shadow-md mr-2">
+                <h2 class="text-lg text-gray-700 font-semibold capitalize">Items in event:</h2>
+                <div class="flex flex-col mt-6">
+            <div class="-my-2 py-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+                <div class="align-middle inline-block min-w-full shadow overflow-hidden sm:rounded-lg border-b border-gray-200">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                                <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"></th>
+
+                                <th class="px-6 py-3 border-b border-gray-200 bg-gray-100"></th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="bg-white">
+                            {% for relation in item_relations %}
+                            {% with relation.item as item %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img class="h-10" src="{{item.get_photo}}" alt="" />
+                                        </div>
+
+                                        <div class="ml-4">
+                                            <div class="text-sm leading-5 font-medium text-gray-900">{{item.name}}</div>
+                                            <div class="text-sm leading-5 text-black">₱ {{item.price| intcomma}}</div>
+                                            <div class="text-sm leading-5 text-gray-500">Total Stocks: {{item.get_quantity}}</div>
+
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                                    <div class="text-sm leading-5 text-gray-900">Variations: {{item.get_variation_count}}</div>
+                                    <div class="text-sm leading-5 text-gray-500">Events Included: {{item.events_featured.count}}</div>
+                                </td>
+
+                                <td class="px-6 py-4 border-b border-gray-200 text-sm leading-5 font-medium">
+                                    <a href="#" class="text-red-600 hover:text-red-300" data-toggle="modal" data-target="#delete-item-event-{{item.id}}">Remove</a>
+                                    {% include 'dashboard/events/confirm_delete_item_from_event.html' with item=item event=event url=remove_item_url %}
+                                </td>
+
+
+
+                            </tr>
+
+                            {% endwith %}
+                            {% empty %}
+                            <tr>
+                                <td colspan="4"><div class="flex justify-around my-10"><div>No items added yet.</div></div></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+
+            </div>
+            <div class="md:w-1/3 sm:w-1/1 p-6  bg-white rounded-md shadow-md">
+                <h2 class="text-lg text-gray-700 font-semibold capitalize">Choose items to include in event:</h2>
+                <form>
+                    <div class="block relative sm:mt-0">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2">
+                            <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current text-gray-500">
+                                <path d="M10 4a6 6 0 100 12 6 6 0 000-12zm-8 6a8 8 0 1114.32 4.906l5.387 5.387a1 1 0 01-1.414 1.414l-5.387-5.387A8 8 0 012 10z"></path>
+                            </svg>
+                        </span>
+
+                        <input name="add_item_search_text" placeholder="Search" class="appearance-none rounded-r rounded-l sm:rounded-l-none border border-gray-400 border-b block pl-8 pr-6 py-2 w-full bg-white text-sm placeholder-gray-400 text-gray-700 focus:bg-white focus:placeholder-gray-600 focus:text-gray-700 focus:outline-none" />
+                    </div>
+
+                </form>
+                <form method="POST">
+                    {% csrf_token %}
+                <div class="flex flex-col">
+                    {% for item in items %}
+                    <label class="inline-flex items-center mt-3">
+                        <input type="checkbox" class="form-checkbox h-5 w-5 text-gray-600" name="add-{{item.id}}" value="{{item.id}}"
+                               {% for event_relation in item.events_featured.all %}
+                                {% if event_relation in item_relations %}
+                                    checked
+                                {% endif %}
+                               {% endfor %}
+                        ><span class="ml-2 text-gray-700">{{ item.name }} - <span class="text-xs">₱ {{item.price | intcomma}} - {{item.get_quantity}} units</span></span>
+                    </label>
+                    {% empty %}
+                    <div class="text-xs my-5">Search for the Item Name that you want to add</div>
+                    {% endfor %}
+                    {% if items %}
+                    <button class="my-5 bg-gray-500 hover:bg-gray-700 rounded py-2">Add to Event</button>
+                    {% endif %}
+                </div>
+                </form>
+            </div>
+
+        </div>
+        <div class="flex justify-around">
+            <form action="{% url 'dashboard:events' %}">
+        <button class="my-5 bg-gray-500 hover:bg-gray-700 rounded py-2 px-6 mr-10">Done</button>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block bodylivescripts %}
+
+$(document).ready(function(){
+  $("#events-menu").addClass("bg-gray-600 bg-opacity-25 text-gray-100 border-gray-100");
+  $("#events-menu").removeClass("border-gray-900 text-gray-500 hover:bg-gray-600 hover:bg-opacity-25 hover:text-gray-100");
+  $('#datetimepicker1').datetimepicker();
+
+  $(document).on('change', '.btn-file :file', function() {
+		var input = $(this),
+			label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+		input.trigger('fileselect', [label]);
+		});
+
+		$('.btn-file :file').on('fileselect', function(event, label) {
+
+		    var input = $(this).parents('.input-group').find(':text'),
+		        log = label;
+
+		    if( input.length ) {
+		        input.val(log);
+		    } else {
+		        if( log ) alert(log);
+		    }
+
+		});
+		function readURL(input) {
+		    if (input.files && input.files[0]) {
+		        var reader = new FileReader();
+
+		        reader.onload = function (e) {
+		            $('#img-upload').attr('src', e.target.result);
+		        }
+
+		        reader.readAsDataURL(input.files[0]);
+		    }
+		}
+
+		$("#imgInp").change(function(){
+		    readURL(this);
+		});
+
+});
+{% endblock %}

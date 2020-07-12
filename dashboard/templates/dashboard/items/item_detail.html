@@ -1,0 +1,137 @@
+{% extends 'dashboard/base.html' %}
+{% load humanize %}
+{% block headstyles %}
+  <style>
+    .modal {
+      transition: opacity 0.25s ease;
+    }
+    body.modal-active {
+      overflow-x: hidden;
+      overflow-y: visible !important;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+<div class="flex justify-between">
+<div class="text-gray-700 text-medium font-medium"> <a href="{% url 'dashboard:items' %}" class="font-medium no-underline text-gray-600 hover:text-gray-900 hover:no-underline">Items</a> <span class="text-lg m-auto"> >  {{item.name}}</span></div>
+    <div>
+        <button class="bg-gray-700 hover:bg-gray-500 text-white font-bold py-1 px-4 rounded">
+            +  New Stock
+        </button>
+    </div>
+</div>
+<div class="sm:flex xs:flex-col">
+    <div class="sm:w-1/3 xs:2/2 bg-white shadow-lg rounded-lg my-4">
+        <img class="w-full h-56 rounded-t object-cover object-center" src="{{item.get_photo}}" alt="avatar">
+        <div class="flex justify-end px-6 pt-2 pb-1 bg-gray-900">
+            <h1 class="text-white font-semibold text-lg">₱ {{item.price|intcomma}}</h1>
+        </div>
+        <div class="py-4 px-6">
+            <h1 class="text-2xl font-semibold text-gray-800">ID: {{item.id}}</h1>
+            <p class="py-2 text-lg border-b-2 border-gray-500 text-gray-700">{{item.description}}</p>
+            <div class="flex items-center mt-4 text-gray-700">
+
+                <h1 class="px-2 text-sm">Category: {{item.category}}</h1>
+            </div>
+            <div class="flex items-center mt-4 text-gray-700">
+
+                <h1 class="px-2 text-sm">Total Stocks Available: {{item.get_quantity}}</h1>
+            </div>
+            <div class="flex items-center mt-4 text-gray-700">
+
+                <h1 class="px-2 text-sm">Total Variation Count: {{item.get_variation_count}}</h1>
+            </div>
+            <div class="mt-6">
+                <label for="event">Events <i class="fa fa-star" aria-hidden="true"></i>:</label>
+                {% for relation in item.events_featured.all %}
+                    {% with relation.event as event %}
+                        <div class="flex justify-between border-b-2 border-gray-500 mt-1">
+                            <label class="inline-flex items-center">
+                                    <span class="ml-2 text-gray-700">- {{event.name}}</span>
+                            </label>
+                            <i class="fa fa-trash text-red-300" aria-hidden="true" data-toggle="modal" data-target="#delete-item-event-{{event.id}}"></i>
+                        </div>
+                        {% include 'dashboard/items/confirm_delete_item_from_event.html' with item=item event=event url=remove_event_url %}
+                    {% endwith %}
+                {% endfor %}
+                {% include 'dashboard/items/event_select.html' with events=events item=item url=update_event_url %}
+            </div>
+        </div>
+    </div>
+    <div class="flex flex-col sm:w-2/3 xs:2/2 mt-6 sm:ml-6">
+            <div class="-my-2 py-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+                <div class="align-middle inline-block min-w-full shadow overflow-hidden sm:rounded-lg border-b border-gray-200">
+                    <form method="POST" action="{% url 'dashboard:item_update_stock_quantity' item_id=item.id %}">
+                        {% csrf_token %}
+                    <table class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Stocks Available</th>
+                                <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Variations</th>
+
+                                <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                <th class="py-3 border-b border-gray-200 bg-gray-100 text-right"><span v-if="itemDetailEditingMode"><button class="bg-gray-500 rounded p-2 mr-4 h-10 text-white">Save</button></span></th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="bg-white">
+                            {% for stock in item.stocks.all %}
+                            <tr>
+                                <td class="px-6 py-4 text-center whitespace-no-wrap border-b border-gray-200">
+                                    <span v-if="itemDetailEditingMode" class="">
+                                        <input class="form-control rounded" name="stock-{{stock.id}}" type="number" value="{{stock.quantity|stringformat:'d'}}">
+                                    </span>
+                                    <span v-else class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{stock.quantity|stringformat:'d'}}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                                    <div class="flex items-center">
+                                        <div class="">
+                                            {% for relation in stock.parameters.all %}
+                                            <div class="text-sm leading-5 font-medium text-gray-900"><span class="font-bold">{{relation.parameter.name}}:</span> {{relation.parameter.value}}</div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
+                                    <div class="flex items-center">
+                                        <div class="">
+
+                                            <div class="text-sm leading-5 font-medium text-gray-900">₱ {{stock.price|intcomma}}</div>
+
+                                        </div>
+                                    </div>
+                                </td>
+
+
+                                <td class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 text-sm leading-5 font-medium">
+                                    <a v-on:click="toggleItemDetailEditingMode" v-if="itemDetailEditingMode" href="#" class="text-black underline hover:text-indigo-900">Cancel</a>
+                                    <span v-if="itemDetailEditingMode">|</span> <a v-if="itemDetailEditingMode" href="#" class="text-black underline hover:text-indigo-900">Full Edit</a>
+                                    <a href="#" v-on:click="toggleItemDetailEditingMode" v-else class="text-black underline hover:text-indigo-900">Edit</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    </form>
+                </div>
+            </div>
+        </div>
+</div>
+
+</div>
+
+
+
+{% endblock %}
+
+{% block bodylivescripts %}
+
+$(document).ready(function(){
+  $("#item-menu").addClass("bg-gray-600 bg-opacity-25 text-gray-100 border-gray-100");
+  $("#item-menu").removeClass("border-gray-900 text-gray-500 hover:bg-gray-600 hover:bg-opacity-25 hover:text-gray-100");
+});
+
+
+{% endblock %}

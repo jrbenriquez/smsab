@@ -100,7 +100,9 @@ var mainWidget = new Vue({
     sideBarOpen: false,
     dropdownOpen: false,
     info: '',
-    recentParams: {}
+    recentParams: {},
+    itemDetailEditingMode: false,
+    itemDetailEventChanged: false
   },
   computed: {
     getCsrfToken() {
@@ -114,12 +116,17 @@ var mainWidget = new Vue({
   },
   methods: {
     updateRecentParams: function(updatedParams){
-        console.log('HABADOOO')
         var paramsArray = JSON.parse(updatedParams)
         this.recentParams = paramsArray
     },
     toggleSideBar: function() {
         this.sideBarOpen = !this.sideBarOpen
+    },
+    toggleItemDetailEditingMode: function() {
+        this.itemDetailEditingMode = !this.itemDetailEditingMode
+    },
+    setItemDetailEventChanged: function() {
+        this.itemDetailEventChanged = true
     },
     toggleDropDown: function() {
         this.dropdownOpen = !this.dropdownOpen

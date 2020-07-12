@@ -37,6 +37,7 @@ gunicorn = "*"
 psycopg2 = "==2.8.4"
 psycopg2-binary = "*"
 django-simple-history = "*"
+python-dateutil = "*"
 
 [requires]
 python_version = "3.8"

@@ -35,7 +35,7 @@ class ItemViewSet(ModelViewSet):
     def perform_create(self, serializer, data={}, files={}):
         model_obj = serializer.save()
 
-        photo = files.get('photo')
+        photo = data.get('photo')
         if photo:
             photo_serializer = ItemPhotoSerializer(data={
                 "item": model_obj.id,
