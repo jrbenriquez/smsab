@@ -129,15 +129,22 @@ class EntryPointViewSet(ModelViewSet):
                     current_index = len(current_items) + previous_products
                 current_browsing_message = f"Showing {current_index} of {active_items.count()} items"
 
-                load_more_button = {
-                    "type": "flow",
-                    "caption": "Load More",
-                    "target": "content20200712104006_431864"
-                }
+                if current_index < active_items.count():
 
-                button_data = [load_more_button]
+                    load_more_button = {
+                        "type": "flow",
+                        "caption": "Load More",
+                        "target": "content20200712104006_431864"
+                    }
 
-                response_data = add_message_text(response_data, current_browsing_message, button_data=button_data)
+                    button_data = [load_more_button,]
+                else:
+                    button_data = []
+
+                response_data = add_message_text(
+                    response_data,
+                    current_browsing_message,
+                    button_data=button_data)
 
                 action_data = {
                     "field_name": "last_browsed_item",
