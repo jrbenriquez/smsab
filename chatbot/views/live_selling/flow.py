@@ -34,7 +34,7 @@ class EntryPointViewSet(ModelViewSet):
             for event in active_events:
                 event_element = create_card_data(
                     title=event.name,
-                    subtitle=f"{event.description} \n {event.start_date.strftime('%B %d %-I:%M')} - {event.end_date.strftime('%B %d %-I:%M')}",
+                    subtitle=f"{event.description} \n {event.start_date.strftime('%B %d %-I:%M %P')} - {event.end_date.strftime('%B %d %-I:%M %P')}",
                     image_url=f"{event.get_photo}"
                 )
                 if event.link:
