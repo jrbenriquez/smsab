@@ -125,9 +125,8 @@ def add_message_text(response_data, message, button_data=None):
     current_messages = get_message_from_data(current_data)
 
     new_message_block = get_messages_format(TEXT)
-    print(new_message_block)
-    new_message_block["text"] = message
 
+    new_message_block["text"] = message
 
     if button_data:
         for data in button_data:
@@ -142,7 +141,7 @@ def add_message_text(response_data, message, button_data=None):
             new_message_block = add_button_to_element(
                 new_message_block, button_type=button_type,
                 caption=caption, url=url)
-    print(f"INSIDE: {current_data}")
+
     response_data = append_messages(current_data, current_messages, new_message_block)
 
     return response_data

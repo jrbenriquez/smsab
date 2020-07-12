@@ -11,6 +11,7 @@ from chatbot.responses.manychat.messages import (add_message_text, add_message_c
                                                  add_button_to_element, add_message_gallery)
 
 from inventory.models.events import Event
+from inventory.models.items import Item
 
 
 class EntryPointViewSet(ModelViewSet):
@@ -69,3 +70,81 @@ class EntryPointViewSet(ModelViewSet):
                 "But don't worry! You can still check out our products by visiting our page.",
                 button_data=button_data)
         return Response(response_data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True,
+            url_path='live-catalog', url_name='live-catalog', permission_classes=[ManyChatAppEntryPermission],
+            authentication_classes=[])
+    def live_catalog(self, request, pk=None):
+        profile = MessengerProfile(user_id=pk)
+        events = Event.objects.all()
+        active_events = [event for event in events if event.is_active]
+        response_data = response_template()
+        last_product = None
+        gallery_list = []
+        if active_events:
+            active_items = Item.objects.none()
+
+            for event in active_events:
+                item_relation = event.items_featured.all()
+                event_items = Item.objects.filter(events_featured__in=item_relation).order_by('id')
+
+                active_items = active_items | event_items
+
+            if active_items:
+                active_items = active_items.order_by('id')
+                if last_product:
+                    current_items = active_items.filter(id__gt=last_product.id)[:10]
+                else:
+                    current_items = active_items[:10]
+                for item in active_items:
+                    item_element = create_card_data(
+                        title=item.name,
+                        subtitle=f"[₱ {item.price:,.2f}] - {item.description}",
+                        image_url=f"{item.get_photo}"
+                    )
+
+                    item_element = add_button_to_element(
+                        item_element,
+                        button_type="url",
+                        caption=f"Get This",
+                        url=f"https://www.google.com"
+                    )
+
+                    gallery_list.append(item_element)
+
+                response_data = add_message_gallery(response_data, gallery_list)
+                first_product = current_items[0]
+                last_product = current_items[len(current_items) - 1]
+                previous_products = active_items.filter(id__lt=first_product.id).count()
+                if len(current_items) < 10:
+                    current_index = len(current_items)
+                else:
+                    current_index = 10 + previous_products
+                current_browsing_message = f"Showing {current_index} of {active_items.count()} items"
+
+                button_data = [{
+                    "button_type": "url",
+                    "caption": f"Load More",
+                    "url": f"https://www.google.com"
+                }]
+
+                response_data = add_message_text(response_data, current_browsing_message, button_data=button_data)
+                return Response(response_data, status=status.HTTP_200_OK)
+
+        else:
+            response_data = add_message_text(response_data, "Currently, we have no live events.")
+
+            button_data = [
+                {
+                    "button_type": "url",
+                    "caption": "Go to Page",
+                    "url": "https://www.google.com"
+                }
+            ]
+
+            response_data = add_message_text(
+                response_data,
+                "But don't worry! You can still check out our products by visiting our page.",
+                button_data=button_data)
+            return Response(response_data, status=status.HTTP_200_OK)
+
