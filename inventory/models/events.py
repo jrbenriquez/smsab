@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from inventory.models.core import TimeStampedModel
 from inventory.models.items import Item
 from inventory.utils.uploaders import upload_event_photo
@@ -10,6 +11,13 @@ class Event(TimeStampedModel):
     start = models.DateTimeField()
     end = models.DateTimeField()
     link = models.CharField(max_length=512, null=True, blank=True)
+
+    @property
+    def is_active(self):
+        current_time = timezone.now()
+        if self.start <= current_time <= self.end:
+            return True
+        return False
 
     @property
     def get_photo(self):

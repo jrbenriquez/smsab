@@ -1,10 +1,16 @@
+from rest_framework.exceptions import ValidationError
+
+
 TEXT = 'text'
 IMAGE = 'image'
 VIDEO = 'video'
 AUDIO = 'audio'
 FILE = 'file'
 CARDS = 'cards'
+BUTTON = 'button'
 CARD_ELEMENTS = "card_elements"
+
+BUTTON_TYPES = ["call", "url", "flow", "node", "buy"]
 
 messages_format = {
     TEXT: {
@@ -30,7 +36,12 @@ messages_format = {
             "image_url": "https://placeimg.com/640/480/any",
             "action_url": "",
             "buttons": []
-    }
+    },
+    BUTTON: {
+            "type": "url",
+            "caption": "External link",
+            "url": "https://manychat.com",
+          }
 }
 
 
@@ -76,6 +87,39 @@ def create_card_data(title, subtitle=None, image_url=None, action_url=None):
     return text_template
 
 
+def add_button_to_element(element, button_type="url", caption=None, *args, **kwargs):
+    button_template = messages_format[BUTTON]
+    if button_type not in BUTTON_TYPES:
+        raise Exception(f'Invalid Button type: {button_type}')
+    button_data = {}
+
+    button_data["type"] = button_type
+    print(kwargs)
+    if button_type == "url":
+        url = kwargs.get('url')
+        if not url:
+            raise ValidationError('url required for button type "url"')
+        button_data["caption"] = caption
+        button_data['url'] = url
+        button_data["webview_size"] = "full"
+
+    elif button_type == "flow":
+        target = kwargs.get('target')
+        if not target:
+            raise ValidationError('target required for button type "flow"')
+        button_data["caption"] = caption
+        button_data["target"] = target
+    else:
+        raise ValidationError('Button type not yet supported')
+
+    button_list = element.get('buttons', [])
+    button_list.append(button_data)
+
+    element['buttons'] = button_list
+
+    return element
+
+
 def add_message_text(response_data, message):
     current_messages = get_message_from_data(response_data)
     text_template = messages_format[TEXT]
@@ -89,11 +133,15 @@ def add_message_text(response_data, message):
     return response_data
 
 
-def add_message_gallery(response_data, card_data):
+def add_message_gallery(response_data, gallery_list):
     current_messages = get_message_from_data(response_data)
     message_block = messages_format[CARDS]
 
-    response_data['content']['messages']['elements'] = card_data
+    message_block['elements'] = gallery_list
+
+    current_messages.append(message_block)
+
+    response_data['content']['messages'] = current_messages
 
     return response_data
 
