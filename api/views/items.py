@@ -36,13 +36,15 @@ class ItemViewSet(ModelViewSet):
         model_obj = serializer.save()
 
         photo = data.get('photo')
-        if photo:
+        if photo or photo =='undefined':
+            print(photo)
             photo_serializer = ItemPhotoSerializer(data={
                 "item": model_obj.id,
                 "photo": data.get('photo')
             })
-            photo_serializer.is_valid()
-            photo_serializer.save()
+            valid = photo_serializer.is_valid(raise_exception=False)
+            if valid:
+                photo_serializer.save()
 
         name = data.get('name')
         description = data.get('description')

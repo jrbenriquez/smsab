@@ -22,6 +22,7 @@ def item_list(request):
         items = items.filter(category__id=category_filter)
     if search_text:
         items = items.filter(name__icontains=search_text)
+    items = items.order_by('-created_at')
     paginator = Paginator(items, page_size)
     page_obj = paginator.get_page(page_number)
     categories = Category.objects.all()
