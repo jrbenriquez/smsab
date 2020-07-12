@@ -96,6 +96,7 @@ def create_card_data(title, subtitle=None, image_url=None, action_url=None):
 
     return text_template
 
+
 def add_action_to_element(element, action="set_field_value", *args, **kwargs):
     if action not in ACTION_TYPES:
         raise Exception(f'Invalid Action type: {action}')
@@ -164,17 +165,29 @@ def add_message_text(response_data, message, button_data=None):
 
     if button_data:
         for data in button_data:
-            button_type = data.get('button_type')
+            button_type = data.get('type')
             caption = data.get('caption')
-            url = data.get('url')
+            if button_type == "url":
+                url = data.get('url')
 
-            if any([not button_type, not caption, not url]):
-                raise ValidationError(
-                    f'One of these could be blank: button_type {button_type}, caption {caption}, url {url}')
+                if any([not button_type, not caption, not url]):
+                    raise ValidationError(
+                        f'One of these could be blank: button_type {button_type}, caption {caption}, url {url}')
 
-            new_message_block = add_button_to_element(
-                new_message_block, button_type=button_type,
-                caption=caption, url=url)
+                new_message_block = add_button_to_element(
+                    new_message_block, button_type=button_type,
+                    caption=caption, url=url)
+            elif button_type in ["node", "flow"]:
+                target = data.get('target')
+                if any([not button_type, not caption, not target]):
+                    raise ValidationError(
+                        f'One of these could be blank: button_type {button_type}, caption {caption}, url {url}')
+
+                new_message_block = add_button_to_element(
+                    new_message_block, button_type=button_type,
+                    caption=caption, target=target)
+
+
 
     response_data = append_messages(current_data, current_messages, new_message_block)
 

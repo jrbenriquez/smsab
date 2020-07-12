@@ -59,7 +59,7 @@ class EntryPointViewSet(ModelViewSet):
 
             button_data = [
                 {
-                    "button_type": "url",
+                    "type": "url",
                     "caption": "Go to Page",
                     "url": "https://www.google.com"
                  }
@@ -76,10 +76,17 @@ class EntryPointViewSet(ModelViewSet):
             authentication_classes=[])
     def live_catalog(self, request, pk=None):
         profile = MessengerProfile(user_id=pk)
+        data = request.data
+        custom_fields = data.get('custom_fields')
+        last_browsed_item = None
+        if custom_fields:
+            last_browsed_item = custom_fields.get('last_browsed_item')
         events = Event.objects.all()
         active_events = [event for event in events if event.is_active]
         response_data = response_template()
         last_product = None
+        if last_browsed_item:
+            last_product = Item.objects.get(id=last_browsed_item)
         gallery_list = []
         if active_events:
             active_items = Item.objects.none()
@@ -116,17 +123,19 @@ class EntryPointViewSet(ModelViewSet):
                 first_product = current_items[0]
                 last_product = current_items[len(current_items) - 1]
                 previous_products = active_items.filter(id__lt=first_product.id).count()
-                if len(current_items) < 10:
+                if len(current_items) < 10 and not last_browsed_item:
                     current_index = len(current_items)
                 else:
-                    current_index = 10 + previous_products
+                    current_index = len(current_items) + previous_products
                 current_browsing_message = f"Showing {current_index} of {active_items.count()} items"
 
-                button_data = [{
-                    "button_type": "url",
-                    "caption": f"Load More",
-                    "url": f"https://www.google.com"
-                }]
+                load_more_button = {
+                    "type": "flow",
+                    "caption": "Load More",
+                    "target": "content20200712104006_431864"
+                }
+
+                button_data = [load_more_button]
 
                 response_data = add_message_text(response_data, current_browsing_message, button_data=button_data)
 
@@ -144,7 +153,7 @@ class EntryPointViewSet(ModelViewSet):
 
             button_data = [
                 {
-                    "button_type": "url",
+                    "type": "url",
                     "caption": "Go to Page",
                     "url": "https://www.google.com"
                 }
