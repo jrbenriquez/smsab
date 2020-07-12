@@ -1,3 +1,5 @@
+import pytz
+
 from dateutil.parser import parse
 from django.shortcuts import render, redirect, reverse
 from django.contrib.auth.decorators import login_required
@@ -24,8 +26,8 @@ def new_event(request):
     elif request.method == 'POST':
         try:
             data = request.POST.copy()
-            data['start'] = parse(data['start'])
-            data['end'] = parse(data['end'])
+            data['start'] = parse(data['start']).replace(tzinfo=pytz.timezone('Asia/Manila'))
+            data['end'] = parse(data['end']).replace(tzinfo=pytz.timezone('Asia/Manila'))
             serializer = EventSerializer(data=data)
 
             serializer.is_valid(raise_exception=True)

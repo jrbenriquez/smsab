@@ -188,7 +188,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
-    ]
+    ],
+    'DATETIME_FORMAT': "%m/%d/%Y %-I:%M %P",
 }
 
 REST_FRAMEWORK_TOKEN_SECONDS_EXPIRY = 1800

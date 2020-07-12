@@ -54,13 +54,13 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="text-gray-700" for="event-start">Event Start*</label>
-                            <div class="mt-2">{% include 'dashboard/widgets/datepicker.html' with datepicker_id="start" value=event.start %}</div>
+                            <label class="text-gray-700" for="event-start">Event Start* <span class="text-xs">Delete text before changing</span></label>
+                            <div class="mt-2">{% include 'dashboard/widgets/datepicker.html' with datepicker_id="start" value=event.start|date:"m/d/Y P" %}</div>
                         </div>
 
                         <div class="form-group">
-                            <label class="text-gray-700" for="event-end">Event End*</label>
-                            <div class="mt-2">{% include 'dashboard/widgets/datepicker.html' with datepicker_id="end" value=event.end %}</div>
+                            <label class="text-gray-700" for="event-end">Event End* <span class="text-xs">Delete text before changing</span></label>
+                            <div class="mt-2">{% include 'dashboard/widgets/datepicker.html' with datepicker_id="end" value=event.end|date:"m/d/Y P" %}</div>
                         </div>
 
                         <div class="form-group">

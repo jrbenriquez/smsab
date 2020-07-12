@@ -1,8 +1,10 @@
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from inventory.models.events import Event, EventPhoto
 
 
 class EventSerializer(ModelSerializer):
+
     def __init__(self, *args, **kwargs):
         # Don't pass the 'fields' arg up to the superclass
         request = kwargs.get('context', {}).get('request')
