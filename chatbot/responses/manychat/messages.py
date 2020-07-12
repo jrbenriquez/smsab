@@ -88,13 +88,11 @@ def create_card_data(title, subtitle=None, image_url=None, action_url=None):
 
 
 def add_button_to_element(element, button_type="url", caption=None, *args, **kwargs):
-    button_template = messages_format[BUTTON]
     if button_type not in BUTTON_TYPES:
         raise Exception(f'Invalid Button type: {button_type}')
     button_data = {}
 
     button_data["type"] = button_type
-    print(kwargs)
     if button_type == "url":
         url = kwargs.get('url')
         if not url:
@@ -120,15 +118,27 @@ def add_button_to_element(element, button_type="url", caption=None, *args, **kwa
     return element
 
 
-def add_message_text(response_data, message):
+def add_message_text(response_data, message, button_data=None):
     current_messages = get_message_from_data(response_data)
-    text_template = messages_format[TEXT]
+    message_block = messages_format[TEXT]
 
-    text_template["text"] = message
+    message_block["text"] = message
 
-    current_messages.append(text_template)
+    if button_data:
+        for data in button_data:
+            button_type = data.get('button_type')
+            caption = data.get('caption')
+            url = data.get('url')
 
-    response_data['content']['messages'] = current_messages
+            if any([not button_type, not caption, not url]):
+                raise ValidationError(
+                    f'One of these could be blank: button_type {button_type}, caption {caption}, url {url}')
+
+            message_block = add_button_to_element(
+                message_block, button_type=button_type,
+                caption=caption, url=url)
+
+    response_data = append_messages(response_data, current_messages, message_block)
 
     return response_data
 
