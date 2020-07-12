@@ -1,4 +1,5 @@
 from django.db import models
+from dateutil import tz
 from django.utils import timezone
 from inventory.models.core import TimeStampedModel
 from inventory.models.items import Item
@@ -11,6 +12,14 @@ class Event(TimeStampedModel):
     start = models.DateTimeField()
     end = models.DateTimeField()
     link = models.CharField(max_length=512, null=True, blank=True)
+
+    @property
+    def start_date(self):
+        return self.start.astimezone(tz.tzlocal())
+
+    @property
+    def end_date(self):
+        return self.end.astimezone(tz.tzlocal())
 
     @property
     def is_active(self):

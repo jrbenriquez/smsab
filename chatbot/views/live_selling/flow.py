@@ -34,7 +34,7 @@ class EntryPointViewSet(ModelViewSet):
             for event in active_events:
                 event_element = create_card_data(
                     title=event.name,
-                    subtitle=f"{event.description} \n {event.start.strftime('%B %d %-I:%M')} - {event.end.strftime('%B %d %-I:%M')}",
+                    subtitle=f"{event.description} \n {event.start_date.strftime('%B %d %-I:%M')} - {event.end_date.strftime('%B %d %-I:%M')}",
                     image_url=f"{event.get_photo}"
                 )
                 if event.link:
@@ -63,8 +63,7 @@ class EntryPointViewSet(ModelViewSet):
                     "url": "https://www.google.com"
                  }
             ]
-            print('adding second')
-            print(response_data)
+
             response_data = add_message_text(
                 response_data,
                 "But don't worry! You can still check out our products by visiting our page.",
