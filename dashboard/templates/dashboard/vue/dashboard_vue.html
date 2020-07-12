@@ -180,7 +180,7 @@ var mainWidget = new Vue({
             // handle success
             location.reload();
           })
-          .catch(error => console.log(error.response))
+          .catch(error => alert(JSON.stringify(error.response.data)))
     },
     createLocation: function() {
         var locationName = this.$refs["loc-name"].value

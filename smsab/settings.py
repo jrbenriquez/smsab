@@ -21,7 +21,9 @@ env = environ.Env(
     DEBUG=(bool, False),
     NO_DOT_ENV_FILE=(bool, False),
     ALLOWED_HOSTS=(list, []),
-    MANYCHAT_APP_IDS=(list, [])
+    MANYCHAT_APP_IDS=(list, []),
+    PUBLIC_PATH=(str, "http://localhost:8000"),
+    MEDIA_S3=(bool, False)
 )
 # reading .env file
 NO_DOT_ENV_FILE = env('NO_DOT_ENV_FILE')
@@ -48,7 +50,7 @@ AUTH_USER_MODEL = 'authentication.User'
 
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 
-PUBLIC_PATH = "http://localhost:8000"
+PUBLIC_PATH = env('PUBLIC_PATH')
 FRONTEND_URL = "http://localhost:8888"
 # Application definition
 
@@ -167,11 +169,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
     os.path.join(os.path.join(BASE_DIR, 'dashboard'), 'static'),
 ]
-
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 MEDIAFILES_LOCATION = 'media'
-MEDIA_URL = 'http://localhost:8000/media/'
+STATICFILES_LOCATION = 'static'
+MEDIA_URL = f"{PUBLIC_PATH}/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 REST_FRAMEWORK = {
@@ -193,5 +195,22 @@ REST_FRAMEWORK_TOKEN_SECONDS_EXPIRY = 1800
 
 MANYCHAT_APP_IDS = env('MANYCHAT_APP_IDS')
 CHATBOT_HASH = env('CHATBOT_HASH')
+
+
+if env('MEDIA_S3'):
+    AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+    AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
+    AWS_S3_HOST = env('AWS_S3_HOST')
+    AWS_S3_REGION_NAME = env('AWS_S3_REGION_NAME')
+    S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+    }
+    AWS_DEFAULT_ACL = None
+
+    MEDIA_URL = "https://%s/%s/" % (S3_CUSTOM_DOMAIN, MEDIAFILES_LOCATION)
+    DEFAULT_FILE_STORAGE = 'smsab.storages.MediaStorage'
+
 
 
