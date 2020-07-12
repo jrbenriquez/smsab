@@ -41,7 +41,6 @@ def login(request):
 
         app_login(request, user)
         if next:
-            print(next)
             return redirect(next)
         return redirect(settings.REDIRECT_URL)
 

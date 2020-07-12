@@ -45,6 +45,10 @@ messages_format = {
 }
 
 
+def get_messages_format(key):
+    return messages_format[key].copy()
+
+
 message_types = [
     TEXT,
     IMAGE,
@@ -61,20 +65,18 @@ def get_message_from_data(response_data):
         current_messages = response_data['content']['messages']
     else:
         current_messages = []
-
     return current_messages
 
 
 def append_messages(response_data, current_messages, message_block):
     current_messages.append(message_block)
-
     response_data['content']['messages'] = current_messages
 
     return response_data
 
 
 def create_card_data(title, subtitle=None, image_url=None, action_url=None):
-    text_template = messages_format[CARD_ELEMENTS]
+    text_template = get_messages_format(CARD_ELEMENTS)
     text_template['title'] = title
     text_template['title'] = title
     if subtitle:
@@ -119,10 +121,13 @@ def add_button_to_element(element, button_type="url", caption=None, *args, **kwa
 
 
 def add_message_text(response_data, message, button_data=None):
-    current_messages = get_message_from_data(response_data)
-    message_block = messages_format[TEXT]
+    current_data = response_data.copy()
+    current_messages = get_message_from_data(current_data)
 
-    message_block["text"] = message
+    new_message_block = get_messages_format(TEXT)
+    print(new_message_block)
+    new_message_block["text"] = message
+
 
     if button_data:
         for data in button_data:
@@ -134,18 +139,18 @@ def add_message_text(response_data, message, button_data=None):
                 raise ValidationError(
                     f'One of these could be blank: button_type {button_type}, caption {caption}, url {url}')
 
-            message_block = add_button_to_element(
-                message_block, button_type=button_type,
+            new_message_block = add_button_to_element(
+                new_message_block, button_type=button_type,
                 caption=caption, url=url)
-
-    response_data = append_messages(response_data, current_messages, message_block)
+    print(f"INSIDE: {current_data}")
+    response_data = append_messages(current_data, current_messages, new_message_block)
 
     return response_data
 
 
 def add_message_gallery(response_data, gallery_list):
     current_messages = get_message_from_data(response_data)
-    message_block = messages_format[CARDS]
+    message_block = get_messages_format(CARDS)
 
     message_block['elements'] = gallery_list
 
@@ -158,7 +163,7 @@ def add_message_gallery(response_data, gallery_list):
 
 def add_message_card(response_data, title, subtitle=None, image_url=None, action_url=None):
     current_messages = get_message_from_data(response_data)
-    message_block = messages_format[CARDS]
+    message_block = get_messages_format(CARDS)
 
     if not title:
         raise Exception('Title is required for Cards')

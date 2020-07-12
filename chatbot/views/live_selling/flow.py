@@ -63,6 +63,8 @@ class EntryPointViewSet(ModelViewSet):
                     "url": "https://www.google.com"
                  }
             ]
+            print('adding second')
+            print(response_data)
             response_data = add_message_text(
                 response_data,
                 "But don't worry! You can still check out our products by visiting our page.",
