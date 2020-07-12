@@ -109,13 +109,21 @@ class EntryPointViewSet(ModelViewSet):
                         subtitle=f"[₱ {item.price:,.2f}] - {item.description}",
                         image_url=f"{item.get_photo}"
                     )
-
-                    item_element = add_button_to_element(
-                        item_element,
-                        button_type="url",
-                        caption=f"Get This",
-                        url=f"https://www.google.com"
-                    )
+                    action_data = [
+                        {
+                            "action": "set_field_value",
+                            "field_name": "order_item",
+                            "value": f"{item.id}"
+                        }
+                    ]
+                    for data in action_data:
+                        item_element = add_button_to_element(
+                            item_element,
+                            button_type="flow",
+                            caption="Get This",
+                            target="content20200712140119_187521",
+                            action_data=data
+                        )
 
                     gallery_list.append(item_element)
 
