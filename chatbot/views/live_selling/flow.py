@@ -8,7 +8,7 @@ from chatbot.permissions.manychat import ManyChatAppEntryPermission
 from chatbot.serializers.users import MessengerProfileSerializer
 from chatbot.responses.manychat.response import response_template
 from chatbot.responses.manychat.messages import (add_message_text, add_message_card, create_card_data,
-                                                 add_button_to_element, add_message_gallery)
+                                                 add_button_to_element, add_message_gallery, add_action_to_element)
 
 from inventory.models.events import Event
 from inventory.models.items import Item
@@ -129,6 +129,13 @@ class EntryPointViewSet(ModelViewSet):
                 }]
 
                 response_data = add_message_text(response_data, current_browsing_message, button_data=button_data)
+
+                action_data = {
+                    "field_name": "last_browsed_item",
+                    "value": f"{last_product.id}"
+                }
+
+                response_data = add_action_to_element(response_data, action="set_field_value", **action_data)
                 return Response(response_data, status=status.HTTP_200_OK)
 
         else:

@@ -9,8 +9,10 @@ FILE = 'file'
 CARDS = 'cards'
 BUTTON = 'button'
 CARD_ELEMENTS = "card_elements"
+ACTION = 'action'
 
 BUTTON_TYPES = ["call", "url", "flow", "node", "buy"]
+ACTION_TYPES = ["set_field_value", "add_tag", "remove_tag", "unset_field_value"]
 
 messages_format = {
     TEXT: {
@@ -41,7 +43,13 @@ messages_format = {
             "type": "url",
             "caption": "External link",
             "url": "https://manychat.com",
-          }
+          },
+    ACTION: {
+        "action": "set_field_value",
+        "field_name": "your field name",
+        "value": "some value"
+      }
+
 }
 
 
@@ -87,6 +95,32 @@ def create_card_data(title, subtitle=None, image_url=None, action_url=None):
         text_template['action_url'] = action_url
 
     return text_template
+
+def add_action_to_element(element, action="set_field_value", *args, **kwargs):
+    if action not in ACTION_TYPES:
+        raise Exception(f'Invalid Action type: {action}')
+
+    action_data = {}
+
+    action_data["action"] = action
+
+    if action == "set_field_value":
+        field_name = kwargs.get('field_name')
+        value = kwargs.get('value')
+        if not field_name:
+            raise ValidationError(f'field_name required for action type "{action}"')
+        if not value:
+            raise ValidationError(f'value required for action type "{action}"')
+
+        action_data['field_name'] = field_name
+        action_data['value'] = value
+
+    action_list = list(element.get('buttons', []))
+    action_list.append(action_data)
+
+    element['actions'] = action_list
+
+    return element
 
 
 def add_button_to_element(element, button_type="url", caption=None, *args, **kwargs):

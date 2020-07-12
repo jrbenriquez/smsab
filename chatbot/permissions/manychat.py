@@ -33,7 +33,10 @@ class ManyChatAppEntryPermission(permissions.BasePermission):
         data = request.data
         user_id_info = data.get('key')
         if not user_id_info:
-            return False
+            user_id_info = data.get('manychat').get('key')
+            if not user_id_info:
+                return False
+
         try:
             user_id = user_id_info.split(':')[-1]
         except Exception as e:
