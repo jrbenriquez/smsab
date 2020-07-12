@@ -1,8 +1,8 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 from chatbot.models.users import MessengerProfile
 
 
-class MessengerProfileSerializer(ModelSerializer):
+class MessengerProfileSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         # Don't pass the 'fields' arg up to the superclass

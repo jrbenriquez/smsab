@@ -20,7 +20,7 @@ from .views.live_selling import flow
 
 router = DefaultRouter()
 
-router.register(r'welcome', flow.EntryPointViewSet, 'welcome')
+router.register(r'entry', flow.EntryPointViewSet, 'entry')
 
 urlpatterns = [
     url(r'^', include(router.urls)),
