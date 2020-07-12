@@ -96,7 +96,7 @@ class EntryPointViewSet(ModelViewSet):
                     current_items = active_items.filter(id__gt=last_product.id)[:10]
                 else:
                     current_items = active_items[:10]
-                for item in active_items:
+                for item in current_items:
                     item_element = create_card_data(
                         title=item.name,
                         subtitle=f"[₱ {item.price:,.2f}] - {item.description}",
