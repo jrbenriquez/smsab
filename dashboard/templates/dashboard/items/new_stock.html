@@ -123,18 +123,18 @@
                         </thead>
 
                         <tbody class="bg-white">
-                        {% for param in item.get_params %}
+                        {% for param in ptemplates %}
 
                             <tr>
                                 <td class="px-6 py-4 text-center whitespace-no-wrap border-b border-gray-200">
                                     <span class="">
-                                        {{param}}
+                                        {{param.name}}
                                     </span>
 
                                 </td>
                                 <td class="px-6 py-4 text-center whitespace-no-wrap border-b border-gray-200">
                                     <span class="">
-                                        <input class="form-control rounded" name="param-{{param}}" type="text" value="">
+                                        <input class="form-control rounded" name="param-{{param.name}}" type="text" value="">
                                     </span>
 
                                 </td>
