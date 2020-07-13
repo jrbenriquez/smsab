@@ -173,7 +173,7 @@ def new_stock(request, item_id):
     events = Event.objects.exclude(items_featured__item=item)
     update_event_url = reverse('dashboard:item_update_event', kwargs={"item_id": item_id})
     remove_event_url = reverse('dashboard:remove_item_from_event', kwargs={"item_id": item_id})
-    ptemplates = ParameterTemplate.objects.all().order_by('name').exclude(name__in=item.get_params)
+    ptemplates = ParameterTemplate.objects.all().order_by('name').filter(name__in=item.get_params)
     context = {
         "item": item,
         "categories": categories,
