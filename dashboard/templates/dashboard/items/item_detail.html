@@ -1,5 +1,6 @@
 {% extends 'dashboard/base.html' %}
 {% load humanize %}
+{% load mptt_tags %}
 {% block headstyles %}
   <style>
     .modal {
@@ -16,19 +17,31 @@
 <div class="flex justify-between">
 <div class="text-gray-700 text-medium font-medium"> <a href="{% url 'dashboard:items' %}" class="font-medium no-underline text-gray-600 hover:text-gray-900 hover:no-underline">Items</a> <span class="text-lg m-auto"> >  {{item.name}}</span></div>
     <div>
+        <form action="{% url 'dashboard:new_stock' item_id=item.id %}">
         <button class="bg-gray-700 hover:bg-gray-500 text-white font-bold py-1 px-4 rounded">
             +  New Stock
         </button>
+        </form>
     </div>
 </div>
 <div class="sm:flex xs:flex-col">
     <div class="sm:w-1/3 xs:2/2 bg-white shadow-lg rounded-lg my-4">
         <img class="w-full h-56 rounded-t object-cover object-center" src="{{item.get_photo}}" alt="avatar">
-        <div class="flex justify-end px-6 pt-2 pb-1 bg-gray-900">
-            <h1 class="text-white font-semibold text-lg">₱ {{item.price|intcomma}}</h1>
+        <div class="flex justify-start px-6 pb-2 bg-gray-900">
+            <h1 class="text-white item-end mt-3 font-semibold text-lg">₱ {{item.price|intcomma}}</h1>
+
         </div>
         <div class="py-4 px-6">
-            <h1 class="text-2xl font-semibold text-gray-800">ID: {{item.id}}</h1>
+            <div class="flex justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold text-gray-800">ID: {{item.id}}</h1>
+            </div>
+            <div>
+                <form action="{% url 'dashboard:edit_item' item_id=item.id %}">
+                <button class="bg-gray-400 text-gray-700 rounded px-2 py-1"> Edit Details</button>
+                </form>
+            </div>
+            </div>
             <p class="py-2 text-lg border-b-2 border-gray-500 text-gray-700">{{item.description}}</p>
             <div class="flex items-center mt-4 text-gray-700">
 
@@ -68,6 +81,7 @@
                         <thead>
                             <tr>
                                 <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Stocks Available</th>
+                                <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Location</th>
                                 <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Variations</th>
 
                                 <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Price</th>
@@ -83,6 +97,9 @@
                                         <input class="form-control rounded" name="stock-{{stock.id}}" type="number" value="{{stock.quantity|stringformat:'d'}}">
                                     </span>
                                     <span v-else class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{stock.quantity|stringformat:'d'}}</span>
+                                </td>
+                                <td class="px-6 py-4 text-center whitespace-no-wrap border-b border-gray-200">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold">{{stock.location}}</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
                                     <div class="flex items-center">
@@ -106,8 +123,10 @@
 
 
                                 <td class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 text-sm leading-5 font-medium">
+                                    <a v-if="itemDetailEditingMode" href="{% url 'dashboard:stock_edit' item_id=item.id stock_id=stock.id %}" class="text-black underline hover:text-indigo-900">Full Edit</a>
+                                    <span v-if="itemDetailEditingMode">|</span>
                                     <a v-on:click="toggleItemDetailEditingMode" v-if="itemDetailEditingMode" href="#" class="text-black underline hover:text-indigo-900">Cancel</a>
-                                    <span v-if="itemDetailEditingMode">|</span> <a v-if="itemDetailEditingMode" href="#" class="text-black underline hover:text-indigo-900">Full Edit</a>
+
                                     <a href="#" v-on:click="toggleItemDetailEditingMode" v-else class="text-black underline hover:text-indigo-900">Edit</a>
                                 </td>
                             </tr>

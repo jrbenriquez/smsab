@@ -55,6 +55,7 @@
         </div>
 
         {% include 'dashboard/items/new_item_modal.html' %}
+        {% include 'dashboard/items/new_parameter_modal.html' with ptemplates=ptemplates %}
 
     </div>
 
@@ -117,8 +118,8 @@
                         </button>
                     </div>
                     <div class="h-3 mx-2">
-                        <button class="bg-gray-700 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded" data-toggle="modal" data-target="#newItemModal">
-                        +  New Parameters
+                        <button class="bg-gray-700 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded" data-toggle="modal" data-target="#newParameterModal">
+                        +  New Parameter
                         </button>
                     </div>
                 </div>
@@ -224,6 +225,10 @@ $(document).ready( function() {
 			label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
 		input.trigger('fileselect', [label]);
 		});
+
+        {% if param_errors %}
+            $('#newParameterModal').modal('show');
+        {% endif %}
 
 		$('.btn-file :file').on('fileselect', function(event, label) {
 

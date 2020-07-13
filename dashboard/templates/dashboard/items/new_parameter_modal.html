@@ -1,0 +1,45 @@
+{% load mptt_tags %}
+
+<div class="modal fade" id="newParameterModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">New Parameter</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form method="post" action="{% url 'dashboard:parameters' %}">
+      <div class="modal-body">
+        {% if  param_errors %}
+          <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+            <p class="font-bold">Error</p>
+              {% for error in param_errors %}
+              <p>{{ error }}</p>
+              {% endfor %}
+          </div>
+          {% endif %}
+
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="item-name">Name*</label>
+            <input type="text" class="form-control" id="param-name" name="name">
+          </div>
+
+<!--          <div class="form-group">-->
+<!--            <label for="item-location">Type</label>-->
+<!--            <select id="item-location" ref="item-location" class="custom-select">-->
+<!--              <option selected value>None</option>-->
+<!--            </select>-->
+<!--          </div>-->
+
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Create Parameter</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>

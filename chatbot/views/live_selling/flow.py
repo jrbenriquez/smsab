@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from chatbot.models.users import MessengerProfile
-from chatbot.permissions.manychat import ManyChatAppEntryPermission
+from chatbot.permissions.manychat import ManyChatAppEntryPermission, ManyChatAppGETPermission
 from chatbot.serializers.users import MessengerProfileSerializer
 from chatbot.responses.manychat.response import response_template
 from chatbot.responses.manychat.messages import (add_message_text, add_message_card, create_card_data,
@@ -180,3 +180,27 @@ class EntryPointViewSet(ModelViewSet):
                 button_data=button_data)
             return Response(response_data, status=status.HTTP_200_OK)
 
+
+class MessengerOrderViewSet(ModelViewSet):
+    queryset = MessengerProfile.objects.all()
+    serializer_class = MessengerProfileSerializer
+    permission_classes = [ManyChatAppGETPermission]
+    http_method_names = ['post', 'get']
+
+    @action(methods=['post'], detail=True,
+            url_path='start-order', url_name='start-order', permission_classes=[ManyChatAppEntryPermission],
+            authentication_classes=[])
+    def start_order(self, request, pk=None):
+        profile = MessengerProfile(user_id=pk)
+        data = request.data
+
+        custom_fields = data.get('custom_fields')
+        item_order_id = None
+        if custom_fields:
+            item_order_id = custom_fields.get('item_order_id')
+
+        if not item_order_id:
+            # Got Lost go back prompt
+            pass
+
+        # Create a MessengerOrder FOrm

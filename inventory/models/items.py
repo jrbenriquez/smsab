@@ -1,6 +1,7 @@
 import itertools
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Sum
+from django.db import IntegrityError
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 from simple_history.models import HistoricalRecords
@@ -35,6 +36,25 @@ class Item(MPTTModel, UUIDModel, TimeStampedModel):
 
     def __str__(self):
         return "{} - {} - {}".format(self.id, self.name, self.price)
+
+    @property
+    def get_params(self):
+        relations = self.stock_params.all()
+        if not relations:
+            return Parameter.objects.none()
+        params = Parameter.objects.filter(items__in=relations).values_list('id', 'name')
+        params_list = []
+        for p in params:
+            if p[1] not in params_list:
+                params_list.append(p[1])
+        return params_list
+
+    def create_stock_param(self, template_id):
+        pt = ParameterTemplate.objects.get(id=template_id)
+        stocks = self.stocks.all()
+        for stock in stocks:
+            print(f'updating stocks for {pt.name}')
+            relation = stock.update_param(pt.name, '')
 
     @property
     def get_quantity(self):
@@ -90,11 +110,11 @@ class Item(MPTTModel, UUIDModel, TimeStampedModel):
                     param_value = list(param.items())[0][1]
                     param_template = ParameterTemplate.objects.get(id=param_template_id)
                     parameter, created = Parameter.objects.get_or_create(name=param_template.name,
-                                                         value=param_value,
-                                                         )
+                                                         value=param_value,                                    )
                     # Create Relation
+
                     param_relation, created = ParameterItemRelation.objects.get_or_create(
-                        stock=stock, parameter=parameter)
+                        item=self, stock=stock, parameter=parameter)
 
         return self.stocks.all()
 
@@ -108,6 +128,36 @@ class ItemStock(UUIDModel, TimeStampedModel):
 
     class MPTTMeta:
         order_insertion_by = ['price']
+
+    def update_param(self, name, value, created_params):
+        if not created_params:
+            created_params = {}
+        relations = self.parameters.all()
+        existing = relations.filter(parameter__name=name)
+        parameter, created = Parameter.objects.get_or_create(name=name,
+                                                    value=value)
+
+        stocks = self.item.stocks.all()
+
+        for stock in stocks:
+            current_params = {}
+            relations = stock.parameters.all()
+
+            for r in relations:
+                current_params[r.parameter.name] = r.parameter.value
+
+            if current_params == created_params:
+                raise IntegrityError('Existing Params for Items')
+
+        if existing:
+            relation = existing.get()
+            relation.delete()
+        relation, created = ParameterItemRelation.objects.get_or_create(
+            item=self.item, stock=self, parameter=parameter
+        )
+        return relation
+
+
 
 
 class ItemPhoto(TimeStampedModel):
@@ -127,8 +177,8 @@ class ParameterTemplate(models.Model):
         'Color': ParameterType.STRING
     }
 
-    name = models.CharField(max_length=64, null=True, blank=True, unique=True)
-    parameter_type = models.CharField(max_length=8, choices=ParameterType.choices)
+    name = models.CharField(max_length=64, unique=True)
+    parameter_type = models.CharField(max_length=8, choices=ParameterType.choices, default=ParameterType.STRING)
 
     def __str__(self):
         return f"{self.name} - {self.pk}"
@@ -150,6 +200,11 @@ class Parameter(TimeStampedModel):
 
 
 class ParameterItemRelation(TimeStampedModel):
+    item = models.ForeignKey(Item, related_name='stock_params',
+                             null=True, blank=True,
+                             on_delete=models.CASCADE,
+                             )
+
     stock = models.ForeignKey(ItemStock, related_name='parameters',
                              null=True, blank=True,
                              on_delete=models.CASCADE,
@@ -160,4 +215,4 @@ class ParameterItemRelation(TimeStampedModel):
                              )
 
     class Meta:
-        unique_together = [['stock', 'parameter']]
+        unique_together = [['stock', 'parameter', 'item'],]
