@@ -132,6 +132,29 @@ def stock_full_edit(request, item_id, stock_id):
                 item.price = model_obj.price
                 item.save(update_fields=['price'])
             created_params = {}
+
+            for d in data:
+                if 'param' in d:
+                    param_name = d.split('-')[-1]
+                    param_value = data[d]
+                    try:
+                        created_params[param_name] = param_value
+                        stocks = model_obj.item.stocks.all().exclude(id=model_obj.id)
+
+                        for stock in stocks:
+                            current_params = {}
+                            relations = stock.parameters.all()
+
+                            for r in relations:
+                                current_params[r.parameter.name] = r.parameter.value
+
+                            if current_params == created_params:
+                                raise IntegrityError('Existing Params for Items')
+                    except IntegrityError as e:
+                        errors = ['Parameters entered already exists for current item']
+                        context['errors'] = errors
+                        return render(request, 'dashboard/items/stock_detail.html', context=context)
+
             for d in data:
                 if 'param' in d:
                     param_name = d.split('-')[-1]
@@ -139,11 +162,11 @@ def stock_full_edit(request, item_id, stock_id):
                     try:
                         created_params[param_name] = param_value
                         model_obj.update_param(param_name, param_value, created_params)
-                        print(created_params)
                     except IntegrityError as e:
                         errors = ['Parameters entered already exists for current item']
                         context['errors'] = errors
                         return render(request, 'dashboard/items/stock_detail.html', context=context)
+
 
             photo = files.get('photo')
             if photo or photo == 'undefined':
@@ -209,7 +232,7 @@ def new_stock(request, item_id):
                         item=model_obj.item, stock=model_obj, parameter=parameter)
                     created_params[param_name] = param_value
 
-            stocks = item.stocks.all()
+            stocks = item.stocks.all().exclude(id=model_obj.id)
 
             for stock in stocks:
                 current_params = {}
@@ -217,7 +240,7 @@ def new_stock(request, item_id):
 
                 for r in relations:
                     current_params[r.parameter.name] = r.parameter.value
-
+                print(f"{current_params} - {created_params}")
                 if current_params == created_params:
                     model_obj.delete()
                     errors = ['Parameters entered already exists for current item or maybe you forgot to type parameter value']
@@ -372,8 +395,10 @@ def add_stock_param(request, item_id):
         template_id = request.POST.get('add-param')
         if not template_id:
             context["errors"] = ["Missing Template ID"]
-        print('Create stock param')
+
         item.create_stock_param(template_id)
+        ptemplates = ParameterTemplate.objects.all().order_by('name').exclude(name__in=item.get_params)
+        context['ptemplates'] = ptemplates
         return render(request, 'dashboard/items/edit_item.html', context=context)
 
 

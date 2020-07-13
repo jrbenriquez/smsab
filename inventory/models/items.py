@@ -136,7 +136,7 @@ class ItemStock(UUIDModel, TimeStampedModel):
         parameter, created = Parameter.objects.get_or_create(name=name,
                                                     value=value)
 
-        stocks = self.item.stocks.all()
+        stocks = self.item.stocks.all().exclude(id=self.id)
 
         for stock in stocks:
             current_params = {}
