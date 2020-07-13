@@ -129,7 +129,7 @@ class ItemStock(UUIDModel, TimeStampedModel):
     class MPTTMeta:
         order_insertion_by = ['price']
 
-    def update_param(self, name, value, created_params):
+    def update_param(self, name, value, created_params=None):
         if not created_params:
             created_params = {}
         relations = self.parameters.all()
