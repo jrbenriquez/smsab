@@ -130,8 +130,7 @@ class ItemStock(UUIDModel, TimeStampedModel):
         order_insertion_by = ['price']
 
     def update_param(self, name, value, created_params=None):
-        if not created_params:
-            created_params = {}
+
         relations = self.parameters.all()
         existing = relations.filter(parameter__name=name)
         parameter, created = Parameter.objects.get_or_create(name=name,
