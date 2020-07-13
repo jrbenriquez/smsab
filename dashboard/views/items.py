@@ -220,7 +220,7 @@ def new_stock(request, item_id):
 
                 if current_params == created_params:
                     model_obj.delete()
-                    errors = ['Parameters entered already exists for current item']
+                    errors = ['Parameters entered already exists for current item or maybe you forgot to type parameter value']
                     context['errors'] = errors
                     return render(request, 'dashboard/items/new_stock.html', context=context)
 
@@ -238,8 +238,24 @@ def new_stock(request, item_id):
 
         data = request.POST.copy()
         data['item'] = item.id
+        errors = []
+        price = data.get('price')
+        quantity = data.get('quantity')
+
+        if not price:
+            errors.append('Price required for new stock')
+
+        if not quantity:
+            errors.append('Quantity required for new stock')
+
         serializer = ItemStockSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception as e:
+            errors.append(e)
+        if errors:
+            context['errors'] = errors
+            return render(request, 'dashboard/items/new_stock.html', context=context)
         return perform_create(serializer, data=request.POST, files=request.FILES)
 
 
