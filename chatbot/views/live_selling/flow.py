@@ -3,15 +3,27 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+
+from api.serializers.messenger_order import MessengerOrderFormSerializer
+
 from chatbot.models.users import MessengerProfile
-from chatbot.permissions.manychat import ManyChatAppEntryPermission, ManyChatAppGETPermission
+from chatbot.models.orders import  MessengerOrderForm
+from chatbot.permissions.manychat import ManyChatAppEntryPermission, ManyChatAppGETPermission, ManyChatAppPOSTPermission
 from chatbot.serializers.users import MessengerProfileSerializer
 from chatbot.responses.manychat.response import response_template
 from chatbot.responses.manychat.messages import (add_message_text, add_message_card, create_card_data,
-                                                 add_button_to_element, add_message_gallery, add_action_to_element)
+                                                 add_button_to_element, add_message_gallery, add_action_to_element,
+                                                 add_message_image)
 
 from inventory.models.events import Event
-from inventory.models.items import Item
+from inventory.models.items import Item, ParameterItemRelation
+
+
+ORDER_FLOW = 'content20200610094539_642137'
+VIEW_CATALOG_FLOW = 'content20200702123449_857707'
+LOAD_MORE = 'content20200712104006_431864'
+ITEM_ORDER_FLOW = 'content20200712140119_187521'
+CHOOSE_PARAMETERS_FLOW = 'content20200714073931_533653'
 
 
 class EntryPointViewSet(ModelViewSet):
@@ -48,8 +60,8 @@ class EntryPointViewSet(ModelViewSet):
                 event_element = add_button_to_element(
                     event_element,
                     button_type="flow",
-                    caption=f"Shop Now",
-                    target=f"content20200702123449_857707"
+                    caption="Shop Now",
+                    target=VIEW_CATALOG_FLOW
                 )
                 gallery_list.append(event_element)
 
@@ -121,7 +133,7 @@ class EntryPointViewSet(ModelViewSet):
                             item_element,
                             button_type="flow",
                             caption="Get This",
-                            target="content20200712140119_187521",
+                            target=ITEM_ORDER_FLOW,
                             action_data=data
                         )
 
@@ -142,7 +154,7 @@ class EntryPointViewSet(ModelViewSet):
                     load_more_button = {
                         "type": "flow",
                         "caption": "Load More",
-                        "target": "content20200712104006_431864"
+                        "target": VIEW_CATALOG_FLOW
                     }
 
                     button_data = [load_more_button,]
@@ -184,23 +196,106 @@ class EntryPointViewSet(ModelViewSet):
 class MessengerOrderViewSet(ModelViewSet):
     queryset = MessengerProfile.objects.all()
     serializer_class = MessengerProfileSerializer
-    permission_classes = [ManyChatAppGETPermission]
+    permission_classes = [ManyChatAppPOSTPermission]
     http_method_names = ['post', 'get']
 
     @action(methods=['post'], detail=True,
             url_path='start-order', url_name='start-order', permission_classes=[ManyChatAppEntryPermission],
             authentication_classes=[])
     def start_order(self, request, pk=None):
-        profile = MessengerProfile(user_id=pk)
+        profile = MessengerProfile.objects.get(user_id=pk)
         data = request.data
 
         custom_fields = data.get('custom_fields')
         item_order_id = None
         if custom_fields:
             item_order_id = custom_fields.get('item_order_id')
-
-        if not item_order_id:
+        item_exists = Item.objects.filter(id=item_order_id)
+        if not item_order_id or not item_exists:
             # Got Lost go back prompt
             pass
 
-        # Create a MessengerOrder FOrm
+        item = item_exists.get()
+
+        # Create a MessengerOrder Form
+        form_data = {
+            "item_id": item_order_id,
+            "customer": profile.id
+        }
+
+        previous_forms = MessengerOrderForm.objects.filter(customer=profile)
+        previous_forms.delete()
+
+        serializer = MessengerOrderFormSerializer(data=form_data)
+        serializer.is_valid(raise_exception=True)
+        order_form = serializer.save()
+
+        variation_reference = {}
+
+        action_data = {
+                "action": "set_field_value",
+                "field_name": "open_order_id",
+                "value": f"{order_form.id}"
+                }
+
+        # Create reply showing item details
+        response_data = response_template()
+
+        response_data = add_message_text(response_data, f"You are ordering: {item.name}")
+        response_data = add_message_image(response_data, item.get_photo)
+        response_data = add_message_text(response_data, f"₱ {item.price:,.2f}")
+
+        variations = item.get_params
+
+        if item.get_variation_count and 0 < item.stocks.all().count() <= 1:
+            button = {
+                        "type": "flow",
+                        "caption": "Order now!",
+                        "target": ORDER_FLOW
+                    }
+            # Set fields for order form
+            order_form.stock = item.stocks.last()
+            order_form.save(update_fields=["stock"])
+            response_data = add_message_text(response_data, "Select Action:", button_data=[button, ])
+        else:
+            button_data = []
+            for variation in variations:
+
+                relations = ParameterItemRelation.objects.filter(
+                    item=item,
+                    parameter__name=variation,
+                    stock__quantity__gt=0
+                )
+                variation_options_available = [x.parameter.value for x in relations]
+                variation_reference[variation] = variation_options_available
+                message = f"{variation} available: {','.join(variation_options_available)}"
+                response_data = add_message_text(response_data, message)
+                button = {
+                        "type": "flow",
+                        "caption": f"Choose {variation} ",
+                        "target": CHOOSE_PARAMETERS_FLOW
+                    }
+
+                # Add action to set parameter_selection
+                button_action_data = {
+                    "action": "set_field_value",
+                    "field_name": "parameter_selection",
+                    "value": f"{variation}"
+                }
+                button = add_action_to_element(button, **button_action_data)
+                button_data.append(button)
+
+
+            response_data = add_message_text(response_data, "Select Action:", button_data=button_data)
+
+            content = response_data.copy()['content']
+            content = add_action_to_element(content, **action_data)
+            response_data['content'] = content
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+
+
+

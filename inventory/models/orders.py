@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from mptt.models import MPTTModel, TreeForeignKey
-from inventory.models.core import TimeStampedModel, UUIDModel
+from smsab.models import TimeStampedModel, UUIDModel
 from inventory.models.items import Item
 from simple_history.models import HistoricalRecords
 

@@ -21,6 +21,8 @@ from .views.live_selling import flow
 router = DefaultRouter()
 
 router.register(r'entry', flow.EntryPointViewSet, 'entry')
+router.register(r'order', flow.MessengerOrderViewSet, 'order')
+
 
 urlpatterns = [
     url(r'^', include(router.urls)),

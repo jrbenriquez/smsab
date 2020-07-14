@@ -20,6 +20,36 @@ class ManyChatAppGETPermission(permissions.BasePermission):
         return True
 
 
+class ManyChatAppPOSTPermission(permissions.BasePermission):
+    message = 'Invalid App or User Not Found'
+
+    def has_permission(self, request, view):
+        app_id = request.META.get('HTTP_X_APP_ID', None)
+
+        valid_apps = settings.MANYCHAT_APP_IDS
+        if app_id not in valid_apps:
+            return False
+
+        data = request.data
+        user_id_info = data.get('key')
+        if not user_id_info:
+            user_id_info = data.get('manychat').get('key')
+            if not user_id_info:
+                return False
+
+        try:
+            user_id = user_id_info.split(':')[-1]
+        except Exception as e:
+            return False
+
+        profile = MessengerProfile.objects.filter(user_id=user_id)
+
+        if not profile:
+            return False
+
+        return True
+
+
 class ManyChatAppEntryPermission(permissions.BasePermission):
     message = 'Invalid App or User Not Found'
 

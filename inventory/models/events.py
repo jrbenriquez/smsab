@@ -1,7 +1,7 @@
 from django.db import models
 from dateutil import tz
 from django.utils import timezone
-from inventory.models.core import TimeStampedModel
+from smsab.models import TimeStampedModel
 from inventory.models.items import Item
 from inventory.utils.uploaders import upload_event_photo
 

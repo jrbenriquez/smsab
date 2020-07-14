@@ -19,6 +19,11 @@ messages_format = {
         "type": TEXT,
         "text": ""
     },
+    IMAGE: {
+        "type": IMAGE,
+        "url": "https://manybot-thumbnails.s3.eu-central-1.amazonaws.com/ca/xxxxxxzzzzzzzzz.png",
+        "buttons": []
+      },
     CARDS: {
         "type": CARDS,
         "elements": [
@@ -128,7 +133,6 @@ def add_button_to_element(element, button_type="url", caption=None, *args, **kwa
     if button_type not in BUTTON_TYPES:
         raise Exception(f'Invalid Button type: {button_type}')
     button_data = {}
-
     button_data["type"] = button_type
     if button_type == "url":
         url = kwargs.get('url')
@@ -138,7 +142,7 @@ def add_button_to_element(element, button_type="url", caption=None, *args, **kwa
         button_data['url'] = url
         button_data["webview_size"] = "full"
 
-    elif button_type == "flow":
+    elif button_type in ["flow", "node"]:
         target = kwargs.get('target')
         if not target:
             raise ValidationError('target required for button type "flow"')
@@ -149,10 +153,11 @@ def add_button_to_element(element, button_type="url", caption=None, *args, **kwa
 
     action_data = kwargs.get('action_data')
     if action_data:
-        button_data = add_action_to_element(
-            button_data,
-            **action_data
-        )
+        for data in action_data:
+            button_data = add_action_to_element(
+                button_data,
+                **data
+            )
 
     button_list = list(element.get('buttons', []))
     button_list.append(button_data)
@@ -174,27 +179,48 @@ def add_message_text(response_data, message, button_data=None):
         for data in button_data:
             button_type = data.get('type')
             caption = data.get('caption')
+            actions = data.get('actions')
             if button_type == "url":
                 url = data.get('url')
 
                 if any([not button_type, not caption, not url]):
                     raise ValidationError(
                         f'One of these could be blank: button_type {button_type}, caption {caption}, url {url}')
-
                 new_message_block = add_button_to_element(
                     new_message_block, button_type=button_type,
-                    caption=caption, url=url)
+                    caption=caption, url=url, action_data=actions)
             elif button_type in ["node", "flow"]:
                 target = data.get('target')
                 if any([not button_type, not caption, not target]):
                     raise ValidationError(
                         f'One of these could be blank: button_type {button_type}, caption {caption}, url {url}')
-
+                print(actions)
                 new_message_block = add_button_to_element(
                     new_message_block, button_type=button_type,
-                    caption=caption, target=target)
+                    caption=caption, target=target, action_data=actions)
+
+    response_data = append_messages(current_data, current_messages, new_message_block)
+
+    return response_data
 
 
+def add_message_image(response_data, url, button_data=None):
+    current_data = response_data.copy()
+    current_messages = get_message_from_data(current_data)
+
+    new_message_block = get_messages_format(IMAGE)
+
+    new_message_block["url"] = url
+
+    if button_data:
+        for data in button_data:
+            button_type = data.get('type')
+            caption = data.get('caption')
+            target = data.get('target')
+            url = data.get('url')
+            new_message_block = add_button_to_element(
+                new_message_block, button_type=button_type,
+                caption=caption, target=target, url=url)
 
     response_data = append_messages(current_data, current_messages, new_message_block)
 

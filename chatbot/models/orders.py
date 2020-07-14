@@ -1,7 +1,10 @@
 from django.db import models
+from chatbot.models.users import MessengerProfile
+from smsab.models import TimeStampedModel
+from inventory.models.items import Item, ItemStock
 
 
-class MessengerOrderForm(models.Model):
+class MessengerOrderForm(TimeStampedModel):
     class FormStatus(models.IntegerChoices):
         OPEN = 1
         CONFIRMED = 2
@@ -10,11 +13,14 @@ class MessengerOrderForm(models.Model):
 
     status = models.IntegerField(choices=FormStatus.choices, default=FormStatus.OPEN)
 
-    item_id = models.CharField(max_length=16)
-    parameters = models.TextField()
-    contact_details = models.TextField()
-    provided_name = models.TextField()
-    address = models.TextField()
+    customer = models.ForeignKey(MessengerProfile, related_name="messenger_forms", on_delete=models.CASCADE)
+
+    item = models.ForeignKey(Item, related_name="item_forms", on_delete=models.CASCADE, null=True)
+    stock = models.ForeignKey(ItemStock, related_name="stock_forms", on_delete=models.CASCADE, null=True)
+    parameters = models.TextField(null=True)
+    contact_details = models.TextField(null=True)
+    provided_name = models.TextField(null=True)
+    address = models.TextField(null=True)
 
     def add_parameters(self, name, value):
         pass

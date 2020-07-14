@@ -1,5 +1,5 @@
 from django.db import models
-from .core import UUIDModel, TimeStampedModel
+from smsab.models import UUIDModel, TimeStampedModel
 from mptt.models import MPTTModel, TreeForeignKey
 
 

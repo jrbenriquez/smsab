@@ -6,7 +6,7 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 from simple_history.models import HistoricalRecords
 from inventory.utils.uploaders import upload_item_photo
-from .core import UUIDModel, TimeStampedModel
+from smsab.models import UUIDModel, TimeStampedModel
 from .categories import Category
 from .locations import Location
 from .managers.items import ItemManager
@@ -42,12 +42,9 @@ class Item(MPTTModel, UUIDModel, TimeStampedModel):
         relations = self.stock_params.all()
         if not relations:
             return Parameter.objects.none()
-        params = Parameter.objects.filter(items__in=relations).values_list('id', 'name')
-        params_list = []
-        for p in params:
-            if p[1] not in params_list:
-                params_list.append(p[1])
-        return params_list
+        params = set(Parameter.objects.filter(items__in=relations).values_list('name', flat=True))
+
+        return params
 
     def create_stock_param(self, template_id):
         pt = ParameterTemplate.objects.get(id=template_id)
