@@ -252,7 +252,7 @@ class MessengerOrderViewSet(ModelViewSet):
                 parameter__name=variation,
                 stock__quantity__gt=0
             )
-            variation_options_available = [x.parameter.value for x in relations]
+            variation_options_available = set([x.parameter.value for x in relations])
             variation_reference[variation] = variation_options_available
             message = f"{variation} available: {','.join(variation_options_available)}"
             response_data = add_message_text(response_data, message)
