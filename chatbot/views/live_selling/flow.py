@@ -124,7 +124,7 @@ class EntryPointViewSet(ModelViewSet):
                     action_data = [
                         {
                             "action": "set_field_value",
-                            "field_name": "order_item",
+                            "field_name": "item_order_id",
                             "value": f"{item.id}"
                         }
                     ]
