@@ -105,7 +105,10 @@ class EntryPointViewSet(ModelViewSet):
 
             for event in active_events:
                 item_relation = event.items_featured.all()
-                event_items = Item.objects.filter(events_featured__in=item_relation).order_by('id')
+                event_items = Item.objects.filter(
+                    events_featured__in=item_relation,
+                    stocks__quantity__gt=0
+                ).order_by('id').distinct()
 
                 active_items = active_items | event_items
 
@@ -154,7 +157,7 @@ class EntryPointViewSet(ModelViewSet):
                     load_more_button = {
                         "type": "flow",
                         "caption": "Load More",
-                        "target": VIEW_CATALOG_FLOW
+                        "target": LOAD_MORE
                     }
 
                     button_data = [load_more_button,]
