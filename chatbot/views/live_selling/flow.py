@@ -128,14 +128,14 @@ class EntryPointViewSet(ModelViewSet):
                             "value": f"{item.id}"
                         }
                     ]
-                    for data in action_data:
-                        item_element = add_button_to_element(
-                            item_element,
-                            button_type="flow",
-                            caption="Get This",
-                            target=ITEM_ORDER_FLOW,
-                            action_data=data
-                        )
+
+                    item_element = add_button_to_element(
+                        item_element,
+                        button_type="flow",
+                        caption="Get This",
+                        target=ITEM_ORDER_FLOW,
+                        action_data=action_data
+                    )
 
                     gallery_list.append(item_element)
 
