@@ -232,12 +232,6 @@ class MessengerOrderViewSet(ModelViewSet):
 
         variation_reference = {}
 
-        action_data = {
-                "action": "set_field_value",
-                "field_name": "open_order_id",
-                "value": f"{order_form.id}"
-                }
-
         # Create reply showing item details
         response_data = response_template()
 
@@ -246,6 +240,33 @@ class MessengerOrderViewSet(ModelViewSet):
         response_data = add_message_text(response_data, f"₱ {item.price:,.2f}")
 
         variations = item.get_params
+
+        button_data = []
+        for variation in variations:
+
+            relations = ParameterItemRelation.objects.filter(
+                item=item,
+                parameter__name=variation,
+                stock__quantity__gt=0
+            )
+            variation_options_available = [x.parameter.value for x in relations]
+            variation_reference[variation] = variation_options_available
+            message = f"{variation} available: {','.join(variation_options_available)}"
+            response_data = add_message_text(response_data, message)
+            button = {
+                    "type": "flow",
+                    "caption": f"Choose {variation} ",
+                    "target": CHOOSE_PARAMETERS_FLOW
+                }
+
+            # Add action to set parameter_selection
+            button_action_data = {
+                "action": "set_field_value",
+                "field_name": "parameter_selection",
+                "value": f"{variation}"
+            }
+            button = add_action_to_element(button, **button_action_data)
+            button_data.append(button)
 
         if item.get_variation_count and 0 < item.stocks.all().count() <= 1:
             button = {
@@ -256,41 +277,19 @@ class MessengerOrderViewSet(ModelViewSet):
             # Set fields for order form
             order_form.stock = item.stocks.last()
             order_form.save(update_fields=["stock"])
-            response_data = add_message_text(response_data, "Select Action:", button_data=[button, ])
+
+            response_data = add_message_text(response_data, "What are you waiting for?", button_data=[button, ])
         else:
-            button_data = []
-            for variation in variations:
-
-                relations = ParameterItemRelation.objects.filter(
-                    item=item,
-                    parameter__name=variation,
-                    stock__quantity__gt=0
-                )
-                variation_options_available = [x.parameter.value for x in relations]
-                variation_reference[variation] = variation_options_available
-                message = f"{variation} available: {','.join(variation_options_available)}"
-                response_data = add_message_text(response_data, message)
-                button = {
-                        "type": "flow",
-                        "caption": f"Choose {variation} ",
-                        "target": CHOOSE_PARAMETERS_FLOW
-                    }
-
-                # Add action to set parameter_selection
-                button_action_data = {
-                    "action": "set_field_value",
-                    "field_name": "parameter_selection",
-                    "value": f"{variation}"
-                }
-                button = add_action_to_element(button, **button_action_data)
-                button_data.append(button)
-
-
             response_data = add_message_text(response_data, "Select Action:", button_data=button_data)
 
-            content = response_data.copy()['content']
-            content = add_action_to_element(content, **action_data)
-            response_data['content'] = content
+        action_data = {
+            "action": "set_field_value",
+            "field_name": "open_order_id",
+            "value": f"{order_form.id}"
+        }
+        content = response_data.copy()['content']
+        content = add_action_to_element(content, **action_data)
+        response_data['content'] = content
 
         return Response(response_data, status=status.HTTP_200_OK)
 
