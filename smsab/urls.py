@@ -31,7 +31,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('dashboard/', include('dashboard.urls', namespace="dashboard")),
     path('api/v1/', include('api.urls')),
-    path('{}/v1/'.format(settings.CHATBOT_HASH), include('chatbot.urls')),
+    path('{}/v1/'.format(settings.CHATBOT_HASH), include('chatbot.urls', namespace="chatbot")),
     path('auth/', include('authentication.urls')),
     path('authorize', set_cookie, name='set-cookie')
 ] + static(settings.MEDIAFILES_LOCATION, document_root=settings.MEDIA_ROOT)

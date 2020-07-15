@@ -1,6 +1,12 @@
+from functools import reduce
+from urllib import parse
+
+from django.conf import settings
+
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.reverse import reverse
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
@@ -13,7 +19,7 @@ from chatbot.serializers.users import MessengerProfileSerializer
 from chatbot.responses.manychat.response import response_template
 from chatbot.responses.manychat.messages import (add_message_text, add_message_card, create_card_data,
                                                  add_button_to_element, add_message_gallery, add_action_to_element,
-                                                 add_message_image)
+                                                 add_message_image, add_quick_reply_to_element)
 
 from inventory.models.events import Event
 from inventory.models.items import Item, ParameterItemRelation
@@ -203,7 +209,7 @@ class MessengerOrderViewSet(ModelViewSet):
     http_method_names = ['post', 'get']
 
     @action(methods=['post'], detail=True,
-            url_path='start-order', url_name='start-order', permission_classes=[ManyChatAppEntryPermission],
+            url_path='start-order', url_name='start-order', permission_classes=[ManyChatAppPOSTPermission],
             authentication_classes=[])
     def start_order(self, request, pk=None):
         profile = MessengerProfile.objects.get(user_id=pk)
@@ -216,13 +222,13 @@ class MessengerOrderViewSet(ModelViewSet):
         item_exists = Item.objects.filter(id=item_order_id)
         if not item_order_id or not item_exists:
             # Got Lost go back prompt
-            pass
+            raise Exception('MISSING PARAMs')
 
         item = item_exists.get()
 
         # Create a MessengerOrder Form
         form_data = {
-            "item_id": item_order_id,
+            "item": item_order_id,
             "customer": profile.id
         }
 
@@ -295,6 +301,161 @@ class MessengerOrderViewSet(ModelViewSet):
         response_data['content'] = content
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True,
+            url_path='parameter-selection', url_name='parameter-selection', permission_classes=[ManyChatAppPOSTPermission],
+            authentication_classes=[])
+    def parameter_selection(self, request, pk=None):
+        profile = MessengerProfile.objects.get(user_id=pk)
+        data = request.data
+
+        custom_fields = data.get('custom_fields')
+
+        if not custom_fields:
+            raise Exception('MISSING Custom Fields')
+        else:
+            item_order_id = custom_fields.get('item_order_id')
+            open_order_id = custom_fields.get('open_order_id')
+            parameter_selection = custom_fields.get('parameter_selection')
+
+        item_exists = Item.objects.filter(id=item_order_id)
+        order_form = MessengerOrderForm.objects.filter(
+            id=open_order_id
+        )
+        if (not item_order_id or not item_exists or
+                not open_order_id or
+                not parameter_selection or not order_form):
+
+            raise Exception('MISSING PARAMs')
+        item = item_exists.get()
+
+        # Check for set_parameter in data
+        set_parameter = data.get('set_parameter')
+        if set_parameter:
+            set_parameter = set_parameter.split(':')
+
+            parameter_name = set_parameter[0]
+            parameter_value = set_parameter[1]
+            order_form = order_form.get()
+            order_form.set_parameters(parameter_name, parameter_value)
+
+            # Get missing parameters
+            missing_parameter = list(order_form.missing_parameters)
+            if not missing_parameter:
+                # proceed_to_order_flow
+                final_params = order_form.parameter_list
+
+                param_string = ", ".join(final_params)
+
+                message = f"You chose {param_string}"
+                response_data = response_template()
+
+                button = {
+                    "type": "flow",
+                    "caption": "Proceed with Order",
+                    "target": ORDER_FLOW
+                }
+                catalog_button = {
+                    "type": "flow",
+                    "caption": "Back to Catalog",
+                    "target": VIEW_CATALOG_FLOW
+                }
+
+                response_data = add_message_text(response_data, message, button_data=[catalog_button, button])
+                return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+            else:
+                missing_parameter = missing_parameter[0]
+                parameter_selection = missing_parameter
+
+
+        # Get all available options for the parameter in parameter_selection:
+        response_data = response_template()
+
+        response_data = add_message_text(response_data, f"What {parameter_selection} do you want?")
+
+
+        relation_values = item.variations_available(parameter_selection)
+
+        for value in relation_values:
+            headers = {
+                "X-App-Id": "smsab"
+            }
+
+            url_list = [
+                settings.PUBLIC_PATH,
+                settings.CHATBOT_HASH,
+                reverse('chatbot:order-parameter-selection', kwargs={"pk": pk})
+            ]
+
+            set_value_url = reduce(lambda a, b: parse.urljoin(a, b), url_list)
+
+            payload = data
+            payload["set_parameter"] = f'{parameter_selection}:{value}'
+            content = response_data.copy()['content']
+
+            content = add_quick_reply_to_element(
+                content, qtype="dynamic_block_callback",
+                caption=value, url=set_value_url,
+                method='post', headers=headers, payload=payload
+                )
+            response_data['content'] = content
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True,
+            url_path='set-parameter', url_name='set-parameter',
+            permission_classes=[ManyChatAppPOSTPermission],
+            authentication_classes=[])
+    def set_parameter(self, request, pk=None):
+        profile = MessengerProfile.objects.get(user_id=pk)
+        data = request.data
+
+        custom_fields = data.get('custom_fields')
+
+        if not custom_fields:
+            raise Exception('MISSING Custom Fields')
+        open_order_id = custom_fields.get('open_order_id')
+
+        order_form = MessengerOrderForm.objects.filter(
+            id=open_order_id
+        )
+
+        if not order_form:
+            raise Exception('Invalid Order Form')
+
+        order_form = order_form.get()
+        # Add chosen parameter to messenger order form
+        set_parameter = data.get('set_parameter').split(':')
+
+        if not set_parameter:
+            raise Exception('Parameter option not found')
+        parameter_name = set_parameter[0]
+        parameter_value = set_parameter[1]
+
+        order_form.set_parameters(parameter_name, parameter_value)
+
+        #Get missing parameters
+        missing_parameter = list(order_form.missing_parameters)
+        if missing_parameter:
+            missing_parameter = missing_parameter[0]
+        else:
+            proceed_to_order_flow
+        # Set that as parameter_selection value
+
+        # Redirect to flow
+
+
+
+
+
+
+
+        # Set parameter_selection field to next parameter without value
+        return Response({}, status=status.HTTP_200_OK)
+
 
 
 

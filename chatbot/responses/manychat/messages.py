@@ -10,8 +10,10 @@ CARDS = 'cards'
 BUTTON = 'button'
 CARD_ELEMENTS = "card_elements"
 ACTION = 'action'
+QUICK_REPLIES = 'quick_replies'
 
 BUTTON_TYPES = ["call", "url", "flow", "node", "buy"]
+QUICK_REPLY_TYPES = ["flow", "node", "dynamic_block_callback"]
 ACTION_TYPES = ["set_field_value", "add_tag", "remove_tag", "unset_field_value"]
 
 messages_format = {
@@ -23,6 +25,12 @@ messages_format = {
         "type": IMAGE,
         "url": "https://manybot-thumbnails.s3.eu-central-1.amazonaws.com/ca/xxxxxxzzzzzzzzz.png",
         "buttons": []
+      },
+    QUICK_REPLIES:
+      {
+        "type": "flow",
+        "caption": "Go",
+        "target": "content20180221085508_278589"
       },
     CARDS: {
         "type": CARDS,
@@ -102,6 +110,39 @@ def create_card_data(title, subtitle=None, image_url=None, action_url=None):
     return text_template
 
 
+def add_quick_reply_to_element(element, qtype, caption, target=None, url=None, method=None, headers=None, payload=None):
+    if qtype not in QUICK_REPLY_TYPES:
+        raise Exception(f'Invalid Quick Reply type: {qtype}')
+    if not caption:
+        raise Exception('Caption required for quick reply')
+
+    quick_reply_data = {}
+
+    quick_reply_data["type"] = qtype
+    quick_reply_data['caption'] = caption
+    if qtype in ["flow", "node"]:
+        if not target:
+            raise ValidationError(f'target required for "{qtype}"')
+
+        quick_reply_data['target'] = target
+    elif qtype == "dynamic_block_callback":
+        if any([not url, not method, not headers, not payload]):
+            raise ValidationError(f'Missing parameters for {qtype}')
+        quick_reply_data['url'] = url
+        quick_reply_data['method'] = method
+        quick_reply_data['headers'] = headers
+        quick_reply_data['payload'] = payload
+    else:
+        raise Exception("Invalid quick reply type")
+
+    q_list = list(element.get('quick_replies', []))
+    q_list.append(quick_reply_data)
+
+    element['quick_replies'] = q_list
+
+    return element
+
+
 def add_action_to_element(element, action="set_field_value", *args, **kwargs):
     if action not in ACTION_TYPES:
         raise Exception(f'Invalid Action type: {action}')
@@ -121,7 +162,7 @@ def add_action_to_element(element, action="set_field_value", *args, **kwargs):
         action_data['field_name'] = field_name
         action_data['value'] = value
 
-    action_list = list(element.get('buttons', []))
+    action_list = list(element.get('actions', []))
     action_list.append(action_data)
 
     element['actions'] = action_list

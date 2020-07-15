@@ -31,6 +31,16 @@ class Item(MPTTModel, UUIDModel, TimeStampedModel):
         self.featured = state
         self.save(update_fields=['featured'])
 
+    def variations_available(self, param_name):
+        relations = ParameterItemRelation.objects.filter(
+            item=self,
+            parameter__name=param_name,
+            stock__quantity__gt=0
+        ).distinct()
+
+        relation_values = set(relations.values_list('parameter__value', flat=True))
+        return relation_values
+
     class MPTTMeta:
         order_insertion_by = ['name']
 
