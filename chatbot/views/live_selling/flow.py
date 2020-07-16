@@ -11,9 +11,10 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
 from api.serializers.messenger_order import MessengerOrderFormSerializer
+from api.serializers.orders import OrderSerializer
 
 from chatbot.models.users import MessengerProfile
-from chatbot.models.orders import  MessengerOrderForm
+from chatbot.models.orders import MessengerOrderForm
 from chatbot.permissions.manychat import ManyChatAppEntryPermission, ManyChatAppGETPermission, ManyChatAppPOSTPermission
 from chatbot.serializers.users import MessengerProfileSerializer
 from chatbot.responses.manychat.response import response_template
@@ -23,6 +24,7 @@ from chatbot.responses.manychat.messages import (add_message_text, add_message_c
 
 from inventory.models.events import Event
 from inventory.models.items import Item, ParameterItemRelation
+from inventory.models.orders import Order, ItemOrder, StockOrder
 
 
 ORDER_FLOW = 'content20200610094539_642137'
@@ -406,10 +408,81 @@ class MessengerOrderViewSet(ModelViewSet):
         return Response(response_data, status=status.HTTP_200_OK)
 
     @action(methods=['post'], detail=True,
-            url_path='set-parameter', url_name='set-parameter',
+            url_path='form-summary', url_name='form-summary',
             permission_classes=[ManyChatAppPOSTPermission],
             authentication_classes=[])
-    def set_parameter(self, request, pk=None):
+    def form_summary(self, request, pk=None):
+        profile = MessengerProfile.objects.get(user_id=pk)
+        data = request.data
+        # Create Form summary to be display to the user to confirm or cancel order
+        response_data = response_template()
+
+        response_data = add_message_text(response_data, "Thanks! 👍")
+        response_data = add_message_text(response_data, "Here's a summary of your order:")
+
+        custom_fields = data.get('custom_fields')
+
+        if not custom_fields:
+            raise Exception('MISSING Custom Fields')
+
+        # Get the custom fields we need to set
+        fields_to_get = ['name', 'contact', 'address', 'open_order_id']
+        order_data = {}
+        for field in fields_to_get:
+            value = custom_fields.get(field)
+            if not value:
+                raise Exception(f"Missing {field}")
+            order_data[field] = value
+
+        messenger_order = MessengerOrderForm.objects.get(id=order_data['open_order_id'])
+        item = messenger_order.item
+        if not messenger_order.stock:
+            params_dict = messenger_order.parameter_dict
+            stocks = item.stocks.all()
+
+            for param_name in params_dict:
+                stocks = stocks.filter(
+                    parameters__parameter__name=param_name,
+                    parameters__parameter__value=params_dict[param_name]
+                )
+
+            stock = stocks.distinct().get()
+
+        else:
+            stock = messenger_order.stock
+
+        item_details = f"Order Details: \n\n" \
+                        f"{stock.item.name} \n" \
+                        f"{order_data['name']} \n" \
+                        f"{order_data['address']} \n" \
+                        f"{order_data['contact']}\n\n" \
+                        f"Total Amount: ₱ {stock.price}"
+
+        response_data = add_message_text(response_data, item_details)
+
+        cancel_order_button = {
+                    "type": "flow",
+                    "caption": "Cancel Order",
+                    "target": VIEW_CATALOG_FLOW
+                }
+
+        confirm_order_button = {
+                    "type": "node",
+                    "caption": "Confirm Order",
+                    "target": "Confirm Order"
+                }
+
+        message = "Please confirm to continue with your order"
+
+        response_data = add_message_text(response_data, message, button_data=[cancel_order_button, confirm_order_button])
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=True,
+            url_path='confirm-order', url_name='confirm-order',
+            permission_classes=[ManyChatAppPOSTPermission],
+            authentication_classes=[])
+    def confirm_order(self, request, pk=None):
         profile = MessengerProfile.objects.get(user_id=pk)
         data = request.data
 
@@ -417,35 +490,60 @@ class MessengerOrderViewSet(ModelViewSet):
 
         if not custom_fields:
             raise Exception('MISSING Custom Fields')
-        open_order_id = custom_fields.get('open_order_id')
 
-        order_form = MessengerOrderForm.objects.filter(
-            id=open_order_id
-        )
+        # Get the custom fields we need to set
+        fields_to_get = ['name', 'contact', 'address', 'open_order_id']
+        order_data = {}
+        for field in fields_to_get:
+            value = custom_fields.get(field)
+            if not value:
+                raise Exception(f"Missing {field}")
+            order_data[field] = value
 
-        if not order_form:
-            raise Exception('Invalid Order Form')
+        profile.provided_name = order_data.get('name')
+        profile.contact_details = order_data.get('contact')
+        profile.address = order_data.get('address')
 
-        order_form = order_form.get()
-        # Add chosen parameter to messenger order form
-        set_parameter = data.get('set_parameter').split(':')
+        profile.save(update_fields=['name', 'contact', 'address'])
 
-        if not set_parameter:
-            raise Exception('Parameter option not found')
-        parameter_name = set_parameter[0]
-        parameter_value = set_parameter[1]
+        messenger_order = MessengerOrderForm.objects.get(id=order_data['open_order_id'])
 
-        order_form.set_parameters(parameter_name, parameter_value)
+        # Create Order here
 
-        #Get missing parameters
-        missing_parameter = list(order_form.missing_parameters)
-        if missing_parameter:
-            missing_parameter = missing_parameter[0]
+        serializer = OrderSerializer(data={
+            "status": Order.OrderStatus.NEW
+        })
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        # Assign Item and Stock here
+        item = messenger_order.item
+        if not messenger_order.stock:
+            params_dict = messenger_order.parameter_dict
+            stocks = item.stocks.all()
+
+            for param_name in params_dict:
+                stocks = stocks.filter(
+                    parameters__parameter__name=param_name,
+                    parameters__parameter__value=params_dict[param_name]
+                )
+
+            stock = stocks.distinct().get()
+
         else:
-            proceed_to_order_flow
-        # Set that as parameter_selection value
+            stock = messenger_order.stock
 
-        # Redirect to flow
+        stock_order = StockOrder.objects.create(
+            order=order,
+            stock=stock,
+            quantity=1
+        )
+        messenger_order.stock = stock
+        messenger_order.save(update_fields=['stock'])
+
+        # TODO Create final flow Order Success with and details and thanks
+        # Create Summart Message
+        # Create thank you message
+
 
 
 

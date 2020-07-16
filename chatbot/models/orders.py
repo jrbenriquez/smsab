@@ -2,6 +2,7 @@ from django.db import models
 from chatbot.models.users import MessengerProfile
 from smsab.models import TimeStampedModel
 from inventory.models.items import Item, ItemStock
+from inventory.models.orders import Order
 
 
 class MessengerOrderForm(TimeStampedModel):
@@ -17,6 +18,7 @@ class MessengerOrderForm(TimeStampedModel):
 
     item = models.ForeignKey(Item, related_name="item_forms", on_delete=models.CASCADE, null=True)
     stock = models.ForeignKey(ItemStock, related_name="stock_forms", on_delete=models.CASCADE, null=True)
+    order = models.ForeignKey(Order, related_name='order_forms', on_delete=models.CASCADE, null=True)
     parameters = models.TextField(null=True)
     contact_details = models.TextField(null=True)
     provided_name = models.TextField(null=True)

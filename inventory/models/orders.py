@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from mptt.models import MPTTModel, TreeForeignKey
 from smsab.models import TimeStampedModel, UUIDModel
-from inventory.models.items import Item
+from inventory.models.items import Item, ItemStock
 from simple_history.models import HistoricalRecords
 
 User = get_user_model()
@@ -17,16 +17,26 @@ class Order(TimeStampedModel, UUIDModel):
         FOR_DELIVERY = 4
         COMPLETE = 5
 
-    status = models.IntegerField(choices=OrderStatus.choices)
+    status = models.IntegerField(choices=OrderStatus.choices, default=OrderStatus.NEW)
     history = HistoricalRecords()
+
+
+class OrderAssignment(TimeStampedModel):
+    order = models.ForeignKey(Order, related_name='assignments', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='orders_assigned', on_delete=models.CASCADE)
 
 
 class ItemOrder(TimeStampedModel):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
-    item = models.ForeignKey(Item, related_name='events',
+    item = models.ForeignKey(Item, related_name='orders',
                              null=True, blank=True,
                              on_delete=models.CASCADE,
                              )
+
+
+class StockOrder(TimeStampedModel):
+    order = models.ForeignKey(Order, related_name='stocks', on_delete=models.CASCADE)
+    stock = models.ForeignKey(ItemStock, related_name="stock_orders", on_delete=models.CASCADE, null=True)
     quantity = models.DecimalField(max_digits=11, decimal_places=2, default=0)
 
 
