@@ -137,6 +137,14 @@ class ItemStock(UUIDModel, TimeStampedModel):
         order_insertion_by = ['price']
 
     @property
+    def get_photo(self):
+        return self.item.get_photo
+
+    @property
+    def name(self):
+        return self.item.name
+
+    @property
     def parameter_list(self):
         relations = self.parameters.all()
         params_list = [(x.parameter.name, x.parameter.value) for x in relations]

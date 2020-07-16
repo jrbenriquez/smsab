@@ -504,10 +504,15 @@ class MessengerOrderViewSet(ModelViewSet):
         profile.contact_details = order_data.get('contact')
         profile.address = order_data.get('address')
 
-        profile.save(update_fields=['name', 'contact', 'address'])
+        profile.save(update_fields=['provided_name', 'contact_details', 'address'])
 
         messenger_order = MessengerOrderForm.objects.get(id=order_data['open_order_id'])
 
+        messenger_order.provided_name = order_data.get('name')
+        messenger_order.contact_details = order_data.get('contact')
+        messenger_order.address = order_data.get('address')
+
+        messenger_order.save(update_fields=['provided_name', 'contact_details', 'address'])
         # Create Order here
 
         serializer = OrderSerializer(data={
@@ -538,12 +543,29 @@ class MessengerOrderViewSet(ModelViewSet):
             quantity=1
         )
         messenger_order.stock = stock
-        messenger_order.save(update_fields=['stock'])
+        messenger_order.order  = order
+        messenger_order.save(update_fields=['stock', 'order'])
 
         # TODO Create final flow Order Success with and details and thanks
-        # Create Summart Message
-        # Create thank you message
+        # Create Summary Message
 
+        response_data = response_template()
+
+        response_data = add_message_text(response_data, "Your order has been made! Please monitor your provided contact info. We will reach out to you personally for your order and delivery")
+
+        message = f"Order Details: \n \n"\
+                    f"Order Reference ID: {messenger_order.order.id} \n\n" \
+                    f"{messenger_order.stock.item.name} \n\n" \
+                    f"{messenger_order.provided_name} \n" \
+                    f"{messenger_order.address}\n" \
+                    f"{messenger_order.contact_details}\n" \
+
+        response_data = add_message_text(response_data, message)
+
+        message = "Thank you for shopping!"
+        response_data = add_message_text(response_data, message)
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 

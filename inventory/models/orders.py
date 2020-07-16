@@ -20,6 +20,23 @@ class Order(TimeStampedModel, UUIDModel):
     status = models.IntegerField(choices=OrderStatus.choices, default=OrderStatus.NEW)
     history = HistoricalRecords()
 
+    @property
+    def stock(self):
+        return self.stocks.get().stock
+
+    @property
+    def quantity(self):
+        return self.stocks.get().quantity
+
+    @property
+    def variations(self):
+        params_list = self.order_forms.get().parameter_list
+        return params_list
+
+    @property
+    def buyer(self):
+        return self.order_forms.last().customer
+
 
 class OrderAssignment(TimeStampedModel):
     order = models.ForeignKey(Order, related_name='assignments', on_delete=models.CASCADE)
