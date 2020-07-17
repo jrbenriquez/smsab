@@ -585,6 +585,11 @@ class MessengerOrderViewSet(ModelViewSet):
                     f"{messenger_order.address}\n" \
                     f"{messenger_order.contact_details}\n" \
 
+        for param in messenger_order.stock.parameter_list:
+            message += '\n'
+            for p in param:
+                message += f'{p} '
+
         response_data = add_message_text(response_data, message)
 
         message = "Thank you for shopping!"
