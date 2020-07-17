@@ -253,6 +253,13 @@ class MessengerOrderViewSet(ModelViewSet):
         variations = item.get_params
 
         button_data = []
+
+        def alphanum_sort(lst):
+            lst = [str(i) for i in lst]
+            lst.sort()
+            lst = [int(i) if i.isdigit() else i for i in lst]
+            return lst
+
         for variation in variations:
 
             relations = ParameterItemRelation.objects.filter(
@@ -260,7 +267,8 @@ class MessengerOrderViewSet(ModelViewSet):
                 parameter__name=variation,
                 stock__quantity__gt=0
             )
-            variation_options_available = sorted(set([x.parameter.value for x in relations]))
+            variation_options_available = list(set([x.parameter.value for x in relations]))
+            variation_options_available = alphanum_sort(variation_options_available)
             variation_reference[variation] = variation_options_available
             message = f"{variation} available: {','.join(variation_options_available)}"
             response_data = add_message_text(response_data, message)
@@ -374,8 +382,15 @@ class MessengerOrderViewSet(ModelViewSet):
 
         # Get all available options for the parameter in parameter_selection:
         response_data = response_template()
-
-        response_data = add_message_text(response_data, f"What {parameter_selection} do you want?")
+        button = {
+            "type": "flow",
+            "caption": "Back to Item",
+            "target": ITEM_ORDER_FLOW
+        }
+        response_data = add_message_text(
+            response_data,
+            f"What {parameter_selection} do you want?",
+            button_data=[button])
 
 
         relation_values = sorted(item.variations_available(parameter_selection, previous_selections=order_form.parameter_dict))
