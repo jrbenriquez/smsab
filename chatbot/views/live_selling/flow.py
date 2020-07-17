@@ -478,6 +478,11 @@ class MessengerOrderViewSet(ModelViewSet):
                         f"{order_data['contact']}\n\n" \
                         f"Total Amount: ₱ {stock.price:,.2f}"
 
+        for param in messenger_order.stock.parameter_list:
+            item_details += '\n'
+            for p in param:
+                item_details += f'{p} '
+
         response_data = add_message_text(response_data, item_details)
 
         cancel_order_button = {
