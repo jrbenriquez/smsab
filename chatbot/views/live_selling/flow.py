@@ -244,7 +244,7 @@ class MessengerOrderViewSet(ModelViewSet):
             "customer": profile.id
         }
 
-        previous_forms = MessengerOrderForm.objects.filter(customer=profile)
+        previous_forms = MessengerOrderForm.objects.filter(customer=profile, status=MessengerOrderForm.FormStatus.OPEN)
         previous_forms.delete()
 
         serializer = MessengerOrderFormSerializer(data=form_data)
@@ -567,8 +567,9 @@ class MessengerOrderViewSet(ModelViewSet):
         stock.save(update_fields=['quantity'])
 
         messenger_order.stock = stock
-        messenger_order.order  = order
-        messenger_order.save(update_fields=['stock', 'order'])
+        messenger_order.order = order
+        messenger_order.status = MessengerOrderForm.FormStatus.CONFIRMED
+        messenger_order.save(update_fields=['stock', 'order', 'status'])
 
         # TODO Create final flow Order Success with and details and thanks
         # Create Summary Message
