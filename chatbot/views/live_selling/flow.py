@@ -260,7 +260,7 @@ class MessengerOrderViewSet(ModelViewSet):
                 parameter__name=variation,
                 stock__quantity__gt=0
             )
-            variation_options_available = set([x.parameter.value for x in relations])
+            variation_options_available = sorted(set([x.parameter.value for x in relations]))
             variation_reference[variation] = variation_options_available
             message = f"{variation} available: {','.join(variation_options_available)}"
             response_data = add_message_text(response_data, message)
@@ -330,7 +330,7 @@ class MessengerOrderViewSet(ModelViewSet):
 
             raise Exception('MISSING PARAMs')
         item = item_exists.get()
-
+        order_form = order_form.get()
         # Check for set_parameter in data
         set_parameter = data.get('set_parameter')
         if set_parameter:
@@ -338,7 +338,6 @@ class MessengerOrderViewSet(ModelViewSet):
 
             parameter_name = set_parameter[0]
             parameter_value = set_parameter[1]
-            order_form = order_form.get()
             order_form.set_parameters(parameter_name, parameter_value)
 
             # Get missing parameters
@@ -379,8 +378,7 @@ class MessengerOrderViewSet(ModelViewSet):
         response_data = add_message_text(response_data, f"What {parameter_selection} do you want?")
 
 
-        relation_values = item.variations_available(parameter_selection)
-
+        relation_values = sorted(item.variations_available(parameter_selection, previous_selections=order_form.parameter_dict))
         for value in relation_values:
             headers = {
                 "X-App-Id": "smsab"
@@ -403,6 +401,7 @@ class MessengerOrderViewSet(ModelViewSet):
                 caption=value, url=set_value_url,
                 method='post', headers=headers, payload=payload
                 )
+            print(content)
             response_data['content'] = content
 
         return Response(response_data, status=status.HTTP_200_OK)
@@ -451,12 +450,14 @@ class MessengerOrderViewSet(ModelViewSet):
         else:
             stock = messenger_order.stock
 
+        response_data = add_message_image(response_data, stock.get_photo)
+
         item_details = f"Order Details: \n\n" \
                         f"{stock.item.name} \n" \
                         f"{order_data['name']} \n" \
                         f"{order_data['address']} \n" \
                         f"{order_data['contact']}\n\n" \
-                        f"Total Amount: ₱ {stock.price}"
+                        f"Total Amount: ₱ {stock.price:,.2f}"
 
         response_data = add_message_text(response_data, item_details)
 
@@ -542,6 +543,10 @@ class MessengerOrderViewSet(ModelViewSet):
             stock=stock,
             quantity=1
         )
+
+        stock.quantity -= 1
+        stock.save(update_fields=['quantity'])
+
         messenger_order.stock = stock
         messenger_order.order  = order
         messenger_order.save(update_fields=['stock', 'order'])

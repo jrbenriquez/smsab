@@ -31,12 +31,30 @@ class Item(MPTTModel, UUIDModel, TimeStampedModel):
         self.featured = state
         self.save(update_fields=['featured'])
 
-    def variations_available(self, param_name):
-        relations = ParameterItemRelation.objects.filter(
-            item=self,
-            parameter__name=param_name,
-            stock__quantity__gt=0
-        ).distinct()
+    def variations_available(self, param_name, previous_selections=None):
+        print(previous_selections)
+        if not previous_selections:
+            relations = ParameterItemRelation.objects.filter(
+                item=self,
+                parameter__name=param_name,
+                stock__quantity__gt=0
+            ).distinct()
+        else:
+            filtered_stocks = self.stocks.all()
+            for param in previous_selections:
+                filtered_stocks = filtered_stocks.filter(
+                    parameters__parameter__name=param,
+                    parameters__parameter__value=previous_selections[param]
+                )
+
+            relations = ParameterItemRelation.objects.filter(
+                item=self,
+                parameter__name=param_name,
+                stock__quantity__gt=0,
+                stock__in=filtered_stocks
+            ).distinct()
+
+
 
         relation_values = set(relations.values_list('parameter__value', flat=True))
         return relation_values

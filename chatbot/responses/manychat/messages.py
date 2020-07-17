@@ -117,7 +117,7 @@ def add_quick_reply_to_element(element, qtype, caption, target=None, url=None, m
         raise Exception('Caption required for quick reply')
 
     quick_reply_data = {}
-
+    payload = payload.copy()
     quick_reply_data["type"] = qtype
     quick_reply_data['caption'] = caption
     if qtype in ["flow", "node"]:

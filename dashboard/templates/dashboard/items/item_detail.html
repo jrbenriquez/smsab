@@ -19,7 +19,7 @@
     <div>
         <form action="{% url 'dashboard:new_stock' item_id=item.id %}">
         <button class="bg-gray-700 hover:bg-gray-500 text-white font-bold py-1 px-4 rounded">
-            +  New Stock
+            + Stock
         </button>
         </form>
     </div>
@@ -123,11 +123,11 @@
 
 
                                 <td class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 text-sm leading-5 font-medium">
-                                    <a v-if="itemDetailEditingMode" href="{% url 'dashboard:stock_edit' item_id=item.id stock_id=stock.id %}" class="text-black underline hover:text-indigo-900">Full Edit</a>
-                                    <span v-if="itemDetailEditingMode">|</span>
                                     <a v-on:click="toggleItemDetailEditingMode" v-if="itemDetailEditingMode" href="#" class="text-black underline hover:text-indigo-900">Cancel</a>
-
-                                    <a href="#" v-on:click="toggleItemDetailEditingMode" v-else class="text-black underline hover:text-indigo-900">Edit</a>
+                                    <span v-else>
+                                    <a href="#" v-on:click="toggleItemDetailEditingMode" class="text-black underline hover:text-indigo-900">Edit Quantity</a> |
+                                    <a href="{% url 'dashboard:stock_edit' item_id=item.id stock_id=stock.id %}" class="text-black underline hover:text-indigo-900">Full Edit</a>
+                                    </span>
                                 </td>
                             </tr>
                             {% endfor %}
