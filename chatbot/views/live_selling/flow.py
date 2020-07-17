@@ -36,6 +36,14 @@ ITEM_ORDER_FLOW = 'content20200712140119_187521'
 CHOOSE_PARAMETERS_FLOW = 'content20200714073931_533653'
 
 
+def alphanum_sort(l):
+    """https://stackoverflow.com/questions/2669059/how-to-sort-alpha-numeric-set-in-python"""
+    """ Sort the given iterable in the way that humans expect."""
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)
+
+
 class EntryPointViewSet(ModelViewSet):
     queryset = MessengerProfile.objects.all()
     serializer_class = MessengerProfileSerializer
@@ -256,13 +264,6 @@ class MessengerOrderViewSet(ModelViewSet):
 
         button_data = []
 
-        def alphanum_sort(l):
-            """https://stackoverflow.com/questions/2669059/how-to-sort-alpha-numeric-set-in-python"""
-            """ Sort the given iterable in the way that humans expect."""
-            convert = lambda text: int(text) if text.isdigit() else text
-            alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
-            return sorted(l, key=alphanum_key)
-
         for variation in variations:
 
             relations = ParameterItemRelation.objects.filter(
@@ -396,7 +397,7 @@ class MessengerOrderViewSet(ModelViewSet):
             button_data=[button])
 
 
-        relation_values = sorted(item.variations_available(parameter_selection, previous_selections=order_form.parameter_dict))
+        relation_values = alphanum_sort(item.variations_available(parameter_selection, previous_selections=order_form.parameter_dict))
         for value in relation_values:
             headers = {
                 "X-App-Id": "smsab"
