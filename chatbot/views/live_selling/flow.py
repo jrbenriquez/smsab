@@ -478,7 +478,7 @@ class MessengerOrderViewSet(ModelViewSet):
                         f"{order_data['contact']}\n\n" \
                         f"Total Amount: ₱ {stock.price:,.2f}"
 
-        for param in messenger_order.stock.parameter_list:
+        for param in stock.parameter_list:
             item_details += '\n'
             for p in param:
                 item_details += f'{p} '
