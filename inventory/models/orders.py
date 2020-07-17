@@ -35,7 +35,11 @@ class Order(TimeStampedModel, UUIDModel):
 
     @property
     def buyer(self):
-        return self.order_forms.last().customer
+        order_form = self.order_forms.last()
+        if order_form:
+            return order_form.customer
+        else:
+            return None
 
 
 class OrderAssignment(TimeStampedModel):
