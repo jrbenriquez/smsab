@@ -254,11 +254,12 @@ class MessengerOrderViewSet(ModelViewSet):
 
         button_data = []
 
-        def alphanum_sort(lst):
-            lst = [str(i) for i in lst]
-            lst.sort()
-            lst = [int(i) if i.isdigit() else i for i in lst]
-            return lst
+        def alphanum_sort(l):
+            """https://stackoverflow.com/questions/2669059/how-to-sort-alpha-numeric-set-in-python"""
+            """ Sort the given iterable in the way that humans expect."""
+            convert = lambda text: int(text) if text.isdigit() else text
+            alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+            return sorted(l, key=alphanum_key)
 
         for variation in variations:
 
