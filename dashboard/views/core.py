@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import login as app_login
 from django.contrib.auth import logout as app_logout
 from django.http import HttpResponse
+
+from chatbot.models.users import MessengerProfile
 User = get_user_model()
 
 
@@ -53,4 +55,6 @@ def logout(request):
 
 @login_required
 def dashboard_home(request):
-    return render(request, 'dashboard/index.html', context={})
+    profiles = MessengerProfile.objects.all().order_by('-joined')
+    context = {'profiles': profiles}
+    return render(request, 'dashboard/index.html', context=context)

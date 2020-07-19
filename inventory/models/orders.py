@@ -16,9 +16,17 @@ class Order(TimeStampedModel, UUIDModel):
         ASSIGNED = 3
         FOR_DELIVERY = 4
         COMPLETE = 5
+        CANCELLED = 6
 
     status = models.IntegerField(choices=OrderStatus.choices, default=OrderStatus.NEW)
     history = HistoricalRecords()
+
+    def cancel(self, user):
+        cancellation = CancelOrder.objects.create(
+            order=self,
+            user=user)
+        self.status = self.OrderStatus.CANCELLED
+        self.save(update_fields=['status'])
 
     @property
     def stock(self):
@@ -40,6 +48,11 @@ class Order(TimeStampedModel, UUIDModel):
             return order_form.customer
         else:
             return None
+
+
+class CancelOrder(TimeStampedModel):
+    order = models.OneToOneField(Order, related_name='cancellation', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='orders_cancelled', on_delete=models.CASCADE)
 
 
 class OrderAssignment(TimeStampedModel):

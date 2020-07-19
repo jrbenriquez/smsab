@@ -106,95 +106,112 @@ class EntryPointViewSet(ModelViewSet):
             authentication_classes=[])
     def live_catalog(self, request, pk=None):
         profile = MessengerProfile(user_id=pk)
+
+        def _get_active_events():
+            events = Event.objects.all()
+            active_events = [event for event in events if event.is_active]
+            return active_events
+
+        def _get_items_to_show():
+
+            active_events = _get_active_events()
+
+            if active_events:
+                _active_items = Item.objects.none()
+
+                for event in active_events:
+                    item_relation = event.items_featured.all()
+                    event_items = Item.objects.filter(
+                        events_featured__in=item_relation,
+                        stocks__quantity__gt=0
+                    ).order_by('id').distinct()
+
+                    _active_items = _active_items | event_items
+                    return _active_items
+            else:
+                return None
+
         data = request.data
+        active_items = _get_items_to_show()
         custom_fields = data.get('custom_fields')
+        last_product = None
         last_browsed_item = None
+        gallery_list = []
+
         if custom_fields:
             last_browsed_item = custom_fields.get('last_browsed_item')
-        events = Event.objects.all()
-        active_events = [event for event in events if event.is_active]
-        response_data = response_template()
-        last_product = None
+
         if last_browsed_item:
             last_product = Item.objects.get(id=last_browsed_item)
-        gallery_list = []
-        if active_events:
-            active_items = Item.objects.none()
 
-            for event in active_events:
-                item_relation = event.items_featured.all()
-                event_items = Item.objects.filter(
-                    events_featured__in=item_relation,
-                    stocks__quantity__gt=0
-                ).order_by('id').distinct()
+        response_data = response_template()
 
-                active_items = active_items | event_items
-
-            if active_items:
-                active_items = active_items.order_by('id')
-                if last_product:
-                    current_items = active_items.filter(id__gt=last_product.id)[:10]
-                else:
-                    current_items = active_items[:10]
-                for item in current_items:
-                    item_element = create_card_data(
-                        title=item.name,
-                        subtitle=f"[₱ {item.price:,.2f}] - {item.description}",
-                        image_url=f"{item.get_photo}"
-                    )
-                    action_data = [
-                        {
-                            "action": "set_field_value",
-                            "field_name": "item_order_id",
-                            "value": f"{item.id}"
-                        }
-                    ]
-
-                    item_element = add_button_to_element(
-                        item_element,
-                        button_type="flow",
-                        caption="Get This",
-                        target=ITEM_ORDER_FLOW,
-                        action_data=action_data
-                    )
-
-                    gallery_list.append(item_element)
-
-                response_data = add_message_gallery(response_data, gallery_list)
-                first_product = current_items[0]
-                last_product = current_items[len(current_items) - 1]
-                previous_products = active_items.filter(id__lt=first_product.id).count()
-                if len(current_items) < 10 and not last_browsed_item:
-                    current_index = len(current_items)
-                else:
-                    current_index = len(current_items) + previous_products
-                current_browsing_message = f"Showing {current_index} of {active_items.count()} items"
-
-                if current_index < active_items.count():
-
-                    load_more_button = {
-                        "type": "flow",
-                        "caption": "Load More",
-                        "target": LOAD_MORE
+        if active_items:
+            active_items = active_items.order_by('id')
+            if last_product:
+                current_items = active_items.filter(id__gt=last_product.id)[:10]
+            else:
+                current_items = active_items[:10]
+            for item in current_items:
+                item_element = create_card_data(
+                    title=item.name,
+                    subtitle=f"₱ {item.price:,.2f} - {item.description}",
+                    image_url=f"{item.get_photo}"
+                )
+                action_data = [
+                    {
+                        "action": "set_field_value",
+                        "field_name": "item_order_id",
+                        "value": f"{item.id}"
                     }
+                ]
 
-                    button_data = [load_more_button,]
-                else:
-                    button_data = []
+                item_element = add_button_to_element(
+                    item_element,
+                    button_type="flow",
+                    caption="Get This",
+                    target=ITEM_ORDER_FLOW,
+                    action_data=action_data
+                )
 
-                response_data = add_message_text(
-                    response_data,
-                    current_browsing_message,
-                    button_data=button_data)
+                gallery_list.append(item_element)
 
-                action_data = {
-                    "field_name": "last_browsed_item",
-                    "value": f"{last_product.id}"
+        if gallery_list:
+            response_data = add_message_gallery(response_data, gallery_list)
+            first_product = current_items[0]
+            last_product = current_items[len(current_items) - 1]
+            previous_products = active_items.filter(id__lt=first_product.id).count()
+            if len(current_items) < 10 and not last_browsed_item:
+                current_index = len(current_items)
+            else:
+                current_index = len(current_items) + previous_products
+            current_browsing_message = f"Showing {current_index} of {active_items.count()} items"
+
+            if current_index < active_items.count():
+
+                load_more_button = {
+                    "type": "flow",
+                    "caption": "Load More",
+                    "target": LOAD_MORE
                 }
-                content = response_data.copy()['content']
-                content = add_action_to_element(content, action="set_field_value", **action_data)
-                response_data['content'] = content
-                return Response(response_data, status=status.HTTP_200_OK)
+
+                button_data = [load_more_button, ]
+            else:
+                button_data = []
+
+            response_data = add_message_text(
+                response_data,
+                current_browsing_message,
+                button_data=button_data)
+
+            action_data = {
+                "field_name": "last_browsed_item",
+                "value": f"{last_product.id}"
+            }
+            content = response_data.copy()['content']
+            content = add_action_to_element(content, action="set_field_value", **action_data)
+            response_data['content'] = content
+            return Response(response_data, status=status.HTTP_200_OK)
 
         else:
             response_data = add_message_text(response_data, "Currently, we have no live events.")
@@ -451,6 +468,11 @@ class MessengerOrderViewSet(ModelViewSet):
             if not value:
                 raise Exception(f"Missing {field}")
             order_data[field] = value
+        profile.provided_name = order_data.get('name')
+        profile.contact_details = order_data.get('contact')
+        profile.address = order_data.get('address')
+
+        profile.save(update_fields=['provided_name', 'contact_details', 'address'])
 
         messenger_order = MessengerOrderForm.objects.get(id=order_data['open_order_id'])
         item = messenger_order.item
@@ -601,15 +623,6 @@ class MessengerOrderViewSet(ModelViewSet):
         response_data = add_message_text(response_data, message)
 
         return Response(response_data, status=status.HTTP_200_OK)
-
-
-
-
-
-
-
-        # Set parameter_selection field to next parameter without value
-        return Response({}, status=status.HTTP_200_OK)
 
 
 

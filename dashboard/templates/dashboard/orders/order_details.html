@@ -1,0 +1,144 @@
+{% extends 'dashboard/base.html' %}
+
+{% load humanize %}
+
+{% block headstyles %}
+  <style>
+    .modal {
+      transition: opacity 0.25s ease;
+    }
+    body.modal-active {
+      overflow-x: hidden;
+      overflow-y: visible !important;
+    }
+  </style>
+{% endblock %}
+
+{% block body %}
+
+<div class="text-gray-700 text-medium font-medium"> <a href="{% url 'dashboard:orders' %}" class="font-medium no-underline text-gray-600 hover:text-gray-900 hover:no-underline">Orders</a> <span class="text-lg m-auto"> > Order ID: {{order.id}}</span></div>
+
+    <div class="mt-4">
+<!--        <button class="bg-black hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" data-toggle="modal" data-target="#newCategoryModal">-->
+<!--            +  New Event-->
+<!--        </button>-->
+
+
+
+    </div>
+
+    <section class="mx-4 text-gray-700 body-font overflow-hidden bg-white">
+    <div class="xs:flex-col sm:flex px-4 py-4">
+
+        <div class="w-1/1 lg:w-4/6 border-r-2 border-gray-200 flex flex-wrap">
+
+        <div class="lg:w-1/2 w-full lg:pl-10 py-4 lg:mt-0">
+          <span class="rounded-full {% if order.status < 5 %} bg-green-200 {% else %} bg-red-200 {% endif %} mr-2 my-5 px-2">{{order.get_status_display}}</span>
+
+        <h1 class="text-gray-900 text-3xl title-font font-medium mb-1">{{order.stock.name}}</h1>
+
+        <p class="leading-relaxed">{{order.stock.description}}</p>
+        <div class="font-bold">
+            <p>Customer Information</p>
+        </div>
+          <div>
+              <p><span class="font-bold">Name:</span> {{order.buyer.provided_name}}</p>
+              <p><span class="font-bold">Address:</span> {{order.buyer.address}}</p>
+              <p><span class="font-bold">Contact:</span> {{order.buyer.contact_details}}</p>
+              {% for param, value in order.stock.parameter_dict.items %}
+              <p><span class="font-bold">{{param}}:</span> <span>{{value}}</span></p>
+              {% endfor %}
+
+              <p><span class="font-bold">Quantity:</span> {{order.stocks.get.quantity|stringformat:'d'}}</p>
+          </div>
+        <div class="flex">
+          <span class="title-font font-medium text-2xl text-gray-900">₱{{order.stock.price|intcomma}}</span>
+
+
+        </div>
+      </div>
+    </div>
+    <div class="w-1/1 lg:w-2/6 flex-col justify-around p-10">
+        <img alt="order_img" class="w-64 h-64 mt-6 object-cover object-center rounded border border-gray-200" src="{{order.stock.get_photo}}">
+        <div><button class="bg-gray-200 rounded px-2 py-1 my-2">Change Status</button></div>
+        <div><button class="bg-gray-200 rounded px-2 py-1 my-2">Assign to User</button></div>
+        <div><button class="bg-red-300 rounded px-2 py-1 my-2" data-toggle="modal" data-target="#cancelOrderModal">Delete Order</button></div>
+
+
+<!-- Cancel Order Modal -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModal" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Are you sure?</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Do you really want to cancel order? Item quantities will be added back to the available inventory.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <form method="post" action="{% url 'dashboard:cancel_order' order_id=order.id %}">
+              {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Yes Cancel</button>
+          </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </div>
+  </div>
+</section>
+
+    <h3 class="mt-4 mx-4">Notes</h3>
+
+    <div class="mx-4 bg-white rounded-md shadow-md h-auto py-4 px-3">
+    <div class="text-sm">
+        <p>Hai saya junior programer di Bali gatra</p>
+    <p>mencoba untuk mengclone facebook dengan Tailwind css</p>
+    </div>
+
+    <div class="flex justify-end">
+        <span class="font-bold mx-2">By: John Rei Enriquez</span>
+        <span class="font-thin mx-2">3:58 PM July 5, 2020</span>
+
+    </div>
+    </div>
+
+
+
+
+
+    <div class="mt-8 mx-4">
+   <form class="w-full bg-white rounded-lg px-4 pb-2">
+      <div class="flex flex-wrap -mx-3 mb-6">
+         <h2 class="px-4 pt-3 pb-2 text-gray-800 text-lg">Add note</h2>
+         <div class="w-full md:w-full px-3 mb-2 mt-2">
+            <textarea class="bg-gray-100 rounded border border-gray-400 leading-normal resize-none w-full h-20 py-2 px-3 font-medium placeholder-gray-700 focus:outline-none focus:bg-white" name="body" placeholder='Type order notes here' required></textarea>
+         </div>
+         <div class="w-full md:w-full flex items-start md:w-full px-3">
+            <div class="flex items-start w-1/2 text-gray-700 px-2 mr-auto">
+
+            </div>
+            <div class="-mr-1">
+               <input type='submit' class="bg-white text-gray-700 font-medium py-1 px-4 border border-gray-400 rounded-lg tracking-wide mr-1 hover:bg-gray-100" value='Save Note'>
+            </div>
+         </div>
+      </form>
+   </div>
+</div>
+
+{% endblock %}
+
+{% block bodylivescripts %}
+
+$(document).ready(function(){
+  $("#orders-menu").addClass("bg-gray-600 bg-opacity-25 text-gray-100 border-gray-100");
+  $("#orders-menu").removeClass("border-gray-900 text-gray-500 hover:bg-gray-600 hover:bg-opacity-25 hover:text-gray-100");
+});
+
+
+{% endblock %}

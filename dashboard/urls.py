@@ -24,7 +24,7 @@ from dashboard.views.categories import categories
 from dashboard.views.locations import locations
 from dashboard.views.events import (events, new_event, view_event_items,
                                     remove_event_item, event_detail, delete_event)
-from dashboard.views.orders import orders
+from dashboard.views.orders import orders, order_details, cancel_order
 
 urlpatterns = [
     path('', dashboard_home, name="dashboard_home"),
@@ -49,6 +49,8 @@ urlpatterns = [
     path('events/view-items/<int:event_id>/', view_event_items, name="event_view_items"),
     path('events/remove-items/<int:event_id>/', remove_event_item, name="remove_event_item"),
     path('events/new/', new_event, name="new_event"),
+    path('orders/<int:order_id>/cancel', cancel_order, name="cancel_order"),
+    path('orders/<int:order_id>/', order_details, name="order_details"),
     path('orders/', orders, name="orders"),
 ]
 
