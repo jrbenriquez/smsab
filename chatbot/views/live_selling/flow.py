@@ -563,7 +563,8 @@ class MessengerOrderViewSet(ModelViewSet):
         # Create Order here
 
         serializer = OrderSerializer(data={
-            "status": Order.OrderStatus.NEW
+            "status": Order.OrderStatus.NEW,
+            "buyer": profile
         })
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
