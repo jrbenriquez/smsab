@@ -7,7 +7,7 @@ from django.db.models import Q
 
 @login_required
 def orders(request):
-    orders = Order.objects.all()
+    orders = Order.objects.all().order_by('-created_at')
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
     search_text = request.GET.get('search')
