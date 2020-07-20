@@ -25,6 +25,54 @@
 
     </div>
 
+    <div class="my-2 flex sm:flex-row flex-col">
+                <div class="flex flex-row mb-1 sm:mb-0">
+<!--                    <div class="relative">-->
+<!--                        <select-->
+<!--                            class="appearance-none h-full rounded-l border block appearance-none w-full bg-white border-gray-400 text-gray-700 py-2 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-gray-500">-->
+<!--                            <option>5</option>-->
+<!--                            <option>10</option>-->
+<!--                            <option>20</option>-->
+<!--                        </select>-->
+<!--                        <div-->
+<!--                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">-->
+<!--                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">-->
+<!--                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />-->
+<!--                            </svg>-->
+<!--                        </div>-->
+<!--                    </div>-->
+                    <div class="relative">
+                        <form>
+                        <select onchange="this.form.submit()" name="status"
+                            class="appearance-none h-full rounded-r border-t sm:rounded-r-none sm:border-r-0 border-r border-b block appearance-none w-full bg-white border-gray-400 text-gray-700 py-2 px-4 pr-8 leading-tight focus:outline-none focus:border-l focus:border-r focus:bg-white focus:border-gray-500">
+                            {% for id, status in order_class.OrderStatus.choices %}
+                            <option value="{{id}}" {% if id == current_status_filter %} selected{%endif%}>{{status}}</option>
+                            {% endfor %}
+                        </select>
+                        </form>
+                        <div
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="block relative">
+                    <span class="h-full absolute inset-y-0 left-0 flex items-center pl-2">
+                        <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current text-gray-500">
+                            <path
+                                d="M10 4a6 6 0 100 12 6 6 0 000-12zm-8 6a8 8 0 1114.32 4.906l5.387 5.387a1 1 0 01-1.414 1.414l-5.387-5.387A8 8 0 012 10z">
+                            </path>
+                        </svg>
+                    </span>
+                    <form class="inline">
+                    <input name="search" placeholder="Search"
+                        class="appearance-none rounded-r rounded-l sm:rounded-l-none border border-gray-400 border-b block pl-8 pr-6 py-2 w-full bg-white text-sm placeholder-gray-400 text-gray-700 focus:bg-white focus:placeholder-gray-600 focus:text-gray-700 focus:outline-none" />
+                    </form>
+                </div>
+            </div>
+
 <div class="mt-8">
 
         <div class="flex flex-col mt-6">
@@ -43,7 +91,7 @@
                         </thead>
 
                         <tbody class="bg-white">
-                            {% for order in orders %}
+                            {% for order in page_obj %}
                             <tr>
                                 <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold">{{order.id}}</span>
@@ -92,6 +140,34 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="flex sm:justify-end xs:justify-start border-t bg-white">
+                        <span class="text-xs xs:text-sm text-gray-900 mt-4">Go to Page
+
+                            <form class="form-control mr-3" style="display:inline">
+                                <input type="number" name="page" max="{{page_obj.paginator.num_pages}}">
+                                <button>Go</button>
+                            </form>
+                        </span>
+                    </div>
+                <div class="px-5 py-5 bg-white flex flex-col xs:flex-row xs:items-start sm:items-center xs:justify-between">
+
+                        <span class="text-xs xs:text-sm text-gray-900">Showing page {{page_obj.number}} of {{page_obj.paginator.num_pages}}</span>
+
+                        <div class="inline-flex mt-2 xs:mt-0">
+                            {% if page_obj.has_previous %}
+                            <form method="get" action="{%url 'dashboard:items'%}">
+                                <input type="hidden" name="page" value="{{ page_obj.previous_page_number }}" />
+                            <button class="text-sm bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-l">Prev</button>
+                            </form>
+                            {% endif %}
+                            {% if page_obj.has_next %}
+                            <form method="get" action="{%url 'dashboard:items'%}">
+                                <input type="hidden" name="page" value="{{ page_obj.next_page_number }}" />
+                                <button type="submit" class="text-sm bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-r">Next</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
             </div>
         </div>
     </div>

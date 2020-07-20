@@ -22,10 +22,15 @@
 {% endblock %}
 
 {% block body %}
+{% include 'dashboard/events/confirm_event_delete.html' with event=event url=delete_event_url %}
+<form method="post" enctype="multipart/form-data" action="{% url 'dashboard:event_detail' event_id=event.id %}">
 <div class="flex justify-between">
     <div class="text-gray-700 text-medium font-medium"> <a href="{% url 'dashboard:events' %}" class="font-medium no-underline text-gray-600 hover:text-gray-900 hover:no-underline">Events</a> <span class="text-lg m-auto"> > Edit Event</span></div>
-    <div><button class="bg-red-500 text-white hover:bg-red-300 rounded py-1 px-2" data-toggle="modal" data-target="#delete-event-{{event.id}}">Delete</button></div>
-    {% include 'dashboard/events/confirm_event_delete.html' with event=event url=delete_event_url %}
+    <div class="flex">
+        <button class="px-4 mx-2 py-2 bg-gray-800 text-gray-200 rounded-md hover:bg-gray-700 focus:outline-none focus:bg-gray-700">Save</button>
+        <button type="button" class=" mx-2 bg-red-500 text-white hover:bg-red-300 rounded py-1 px-2" data-toggle="modal" data-target="#delete-event-{{event.id}}">Delete</button>
+    </div>
+
 </div>
     {% if errors %}
     <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
@@ -40,7 +45,7 @@
             <div class="p-6 bg-white rounded-md shadow-md">
                 <h2 class="text-lg text-gray-700 font-semibold capitalize">Event Details</h2>
 
-                <form method="post" enctype="multipart/form-data" action="{% url 'dashboard:event_detail' event_id=event.id %}">
+
                     {% csrf_token %}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
                         <div class="form-group">
@@ -80,13 +85,12 @@
 
                     </div>
 
-                    <div class="flex justify-end mt-4">
-                        <button class="px-4 py-2 bg-gray-800 text-gray-200 rounded-md hover:bg-gray-700 focus:outline-none focus:bg-gray-700">Save</button>
-                    </div>
-                </form>
+
+
             </div>
         </div>
     </div>
+    </form>
 
 {% endblock %}
 

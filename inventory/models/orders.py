@@ -20,6 +20,7 @@ class Order(TimeStampedModel, UUIDModel):
 
     status = models.IntegerField(choices=OrderStatus.choices, default=OrderStatus.NEW)
     history = HistoricalRecords()
+    buyer = models.ForeignKey('chatbot.MessengerProfile', related_name="orders", on_delete=models.CASCADE, null=True, blank=True)
 
     def cancel(self, user):
         cancellation = CancelOrder.objects.create(
@@ -42,7 +43,7 @@ class Order(TimeStampedModel, UUIDModel):
         return params_list
 
     @property
-    def buyer(self):
+    def messenger_buyer(self):
         order_form = self.order_forms.last()
         if order_form:
             return order_form.customer
