@@ -104,7 +104,6 @@
                                 </td>
 
                                 <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
-                                    <div class="text-sm leading-5 text-gray-900">{% if event.link %}{{event.link}}{% endif %}</div>
                                     <div class="text-sm leading-5 text-gray-500">{{event.start}} - {{event.end}}</div>
                                     <div class="text-sm leading-5 text-gray-500">Items in Event: {{event.items_featured.count}} -
                                         <form class="inline" action="{% url 'dashboard:event_view_items' event_id=event.id%}">
@@ -118,7 +117,7 @@
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if event.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800 {% endif%}">{% if event.is_active %}Active {% else %} Inactive {% endif%}</span>
                                 </td>
 
-                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 text-sm leading-5 text-gray-500">{{event.link}}</td>
+                                <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200 text-sm leading-5 text-gray-500">{{event.link|slice:16}}...</td>
 
                                 <td class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 text-sm leading-5 font-medium">
                                     <a href="{% url 'dashboard:event_detail' event_id=event.id %}" class="text-black underline hover:text-gray-700">Edit</a>
