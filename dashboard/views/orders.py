@@ -14,7 +14,7 @@ def orders(request):
     status = int(request.GET.get('status', 1))
 
     if status:
-        orders = Order.objects.filter(status=status)
+        orders = orders.filter(status=status)
 
     search_fields = ['id', 'stocks__stock__item__name', 'buyer']
     search_dict = {}
