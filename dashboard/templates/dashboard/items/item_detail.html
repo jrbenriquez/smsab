@@ -81,7 +81,8 @@
                         <thead>
                             <tr>
                                 <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Stocks Available</th>
-                                <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Style ID</th>
+<!--                                <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Location</th>-->
                                 <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Variations</th>
 
                                 <th class="px-6 py-3 border-b border-gray-200 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider">Price</th>
@@ -99,8 +100,14 @@
                                     <span v-else class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{stock.quantity|stringformat:'d'}}</span>
                                 </td>
                                 <td class="px-6 py-4 text-center whitespace-no-wrap border-b border-gray-200">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold">{{stock.location}}</span>
+                                    <span v-if="itemDetailEditingMode" class="">
+                                        <input class="form-control rounded" name="style-{{stock.id}}" type="text" value="{{stock.style_id}}">
+                                    </span>
+                                    <span v-else class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{stock.style_id}}</span>
                                 </td>
+<!--                                <td class="px-6 py-4 text-center whitespace-no-wrap border-b border-gray-200">-->
+<!--                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold">{{stock.location}}</span>-->
+<!--                                </td>-->
                                 <td class="px-6 py-4 whitespace-no-wrap border-b border-gray-200">
                                     <div class="flex items-center">
                                         <div class="">
@@ -125,7 +132,7 @@
                                 <td class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 text-sm leading-5 font-medium">
                                     <a v-on:click="toggleItemDetailEditingMode" v-if="itemDetailEditingMode" href="#" class="text-black underline hover:text-indigo-900">Cancel</a>
                                     <span v-else>
-                                    <a href="#" v-on:click="toggleItemDetailEditingMode" class="text-black underline hover:text-indigo-900">Edit Quantity</a> |
+                                    <a href="#" v-on:click="toggleItemDetailEditingMode" class="text-black underline hover:text-indigo-900">Quick Edit</a> |
                                     <a href="{% url 'dashboard:stock_edit' item_id=item.id stock_id=stock.id %}" class="text-black underline hover:text-indigo-900">Full Edit</a>
                                     </span>
                                 </td>

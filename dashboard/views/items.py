@@ -12,6 +12,7 @@ from inventory.models.items import ParameterTemplate, Item, Parameter, ItemStock
 @login_required
 def item_list(request):
     items = Item.objects.all()
+    events = Event.objects.all()
     page_number = request.GET.get('page')
     page_size = request.GET.get('page_size')
     category_filter = request.GET.get('category')
@@ -32,6 +33,7 @@ def item_list(request):
     ptemplates = ParameterTemplate.objects.all().order_by('name')
     context = {
         "items": items,
+        "events": events,
         "page_obj": page_obj,
         "categories": categories,
         "locations": locations,
@@ -51,6 +53,12 @@ def item_update_stock_quantity(request, item_id):
                 stock = item.stocks.get(id=stock_id)
                 stock.quantity = data[d]
                 stock.save(update_fields=['quantity'])
+            elif 'style' in d:
+                stock_id = d.split('-')[-1]
+                item = Item.objects.get(id=item_id)
+                stock = item.stocks.get(id=stock_id)
+                stock.style_id = data[d]
+                stock.save(update_fields=['style_id'])
 
         return redirect(reverse('dashboard:item_detail', kwargs={'item_id': item_id}))
     return redirect(reverse('dashboard:items'))
@@ -180,12 +188,9 @@ def stock_full_edit(request, item_id, stock_id):
                     photo_serializer.save()
             return redirect(reverse('dashboard:item_detail', kwargs={"item_id": item.id}))
 
-
-
         serializer = ItemStockSerializer(stock, data=request.POST, partial=True)
         serializer.is_valid(raise_exception=True)
         return perform_update(serializer, data=request.POST, files=request.FILES)
-
 
 
 @login_required

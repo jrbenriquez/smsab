@@ -452,7 +452,7 @@ class MessengerOrderViewSet(ModelViewSet):
         # Create Form summary to be display to the user to confirm or cancel order
         response_data = response_template()
 
-        response_data = add_message_text(response_data, "Thanks! 👍")
+        response_data = add_message_text(response_data, "Almost there! 👍")
         response_data = add_message_text(response_data, "Here's a summary of your order:")
 
         custom_fields = data.get('custom_fields')

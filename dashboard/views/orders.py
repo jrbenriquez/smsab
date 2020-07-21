@@ -7,14 +7,18 @@ from django.db.models import Q
 
 @login_required
 def orders(request):
-    orders = Order.objects.all().order_by('-created_at')
+    orders = Order.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
     search_text = request.GET.get('search')
     status = int(request.GET.get('status', 1))
+    order_by = request.GET.get('order_by')
 
     if status:
         orders = orders.filter(status=status)
+
+    if order_by:
+        orders = orders.order_by(order_by)
 
     search_fields = ['id', 'stocks__stock__item__name', 'buyer']
     search_dict = {}

@@ -67,7 +67,17 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="item-location">Location*</label>
+            <label for="item-event">Event</label>
+            <select id="item-event" ref="item-event" class="custom-select">
+              <option selected value>None</option>
+              {% for event in events %}
+                  <option value="{{event.id}}">{{ event.name }}</option>
+                </li>
+            {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="item-location">Location</label>
             <select id="item-location" ref="item-location" class="custom-select">
               <option selected value>None</option>
               {% recursetree locations %}

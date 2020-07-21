@@ -23,3 +23,4 @@ class MessengerProfile(models.Model):
     email = models.EmailField(unique=True, null=True, blank=True)
     last_interaction = models.DateTimeField(null=True, blank=True)
     joined = models.DateTimeField(auto_now_add=True)
+    smac = models.CharField(max_length=64, null=True, blank=True)

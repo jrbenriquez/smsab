@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 
 from api.serializers.items import ItemSerializer, ItemStockSerializer, ItemPhotoSerializer
 from inventory.models.items import Item, ItemStock
+from inventory.models.events import Event
 
 
 class ItemViewSet(ModelViewSet):
@@ -52,6 +53,12 @@ class ItemViewSet(ModelViewSet):
         quantity = data.get('quantity')
         category_id = data.get('category')
         location_id = data.get('location')
+        event = data.get('event')
+
+        if event:
+            event = Event.objects.get(id=event)
+            event.add_item(model_obj)
+
         parameter_data = data.get('param_data')
         if isinstance(parameter_data, str):
             parameter_data = json.loads(parameter_data)
