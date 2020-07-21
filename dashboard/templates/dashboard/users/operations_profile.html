@@ -26,43 +26,31 @@
                 {% for error in errors %}
                 <div class="bg-red-200 px-4">{{error}}</div>
                 {% endfor %}
-                <form method="POST" class="mt-4" action="/dashboard/login/?next={{next}}">
+                <div class="my-8">
+                    <p class="text-center">
+                        Please enter your email so we can verify your identity as part of the operations team
+                    </p>
+                </div>
+
+                <form method="POST" class="mt-4">
                     {% csrf_token %}
                     <label class="block">
                         <span class="text-gray-700 text-sm">Email</span>
                         <input name="email" type="email" class="form-input mt-1 block w-full rounded-md focus:border-indigo-600">
                     </label>
 
-                    <label class="block mt-3">
-                        <span class="text-gray-700 text-sm">Password</span>
-                        <input name="password" type="password" class="form-input mt-1 block w-full rounded-md focus:border-indigo-600">
-                    </label>
-
                     <div class="flex justify-between items-center mt-4">
 
-
-                        <div>
-<!--                            <a class="block text-sm fontme text-grey-700 hover:underline" href="#">Forgot your password?</a>-->
-                        </div>
                     </div>
 
                     <div class="mt-6">
                         <button type="submit" class="py-2 px-4 text-center bg-black rounded-md w-full text-white text-sm hover:bg-gray-500">
-                            Sign in
+                            Continue
                         </button>
                     </div>
                 </form>
-                <div class="my-8 w-full border-b-2 border-gray-500"></div>
-                <div class="my-4 flex items-center">
-                            <a href="{% url 'dashboard:activate_marketing' %}" class="inline-flex items-center text-center">
 
-                                <span class="mx-2 text-gray-600 text-sm">Activate Marketing Account</span>
-                            </a>
-                            <a href="{% url 'dashboard:activate_operations' %}" class="inline-flex items-center text-center">
 
-                                <span class="mx-2 text-gray-600 text-sm">Activate Operations Account</span>
-                            </a>
-                        </div>
             </div>
         </div>
 

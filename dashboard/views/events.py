@@ -4,12 +4,14 @@ from dateutil.parser import parse
 from django.shortcuts import render, redirect, reverse
 from django.contrib.auth.decorators import login_required
 from api.serializers.events import EventSerializer, EventPhotoSerializer
+from authentication.utils.permissions import permission_required
 
 from inventory.models.events import Event
 from inventory.models.items import Item
 
 
 @login_required
+@permission_required('is_marketing')
 def events(request):
     events = Event.objects.all
     context = {"events": events}
@@ -17,6 +19,7 @@ def events(request):
 
 
 @login_required
+@permission_required('is_marketing')
 def new_event(request):
 
     if request.method == 'GET':
@@ -53,6 +56,7 @@ def new_event(request):
 
 
 @login_required
+@permission_required('is_marketing')
 def event_detail(request, event_id):
     event = Event.objects.get(id=event_id)
     context = {"event": event}
@@ -82,6 +86,7 @@ def event_detail(request, event_id):
 
 
 @login_required
+@permission_required('is_marketing')
 def delete_event(request, event_id):
 
     if request.method == 'POST':
@@ -91,6 +96,7 @@ def delete_event(request, event_id):
 
 
 @login_required
+@permission_required('is_marketing')
 def view_event_items(request, event_id):
     event = Event.objects.get(id=event_id)
     item_relations = event.items_featured.all()
@@ -129,6 +135,7 @@ def view_event_items(request, event_id):
 
 
 @login_required
+@permission_required('is_marketing')
 def remove_event_item(request, event_id):
     if request.method == 'POST':
         data = request.POST.copy()

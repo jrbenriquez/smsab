@@ -4,6 +4,8 @@ from django.core.paginator import Paginator
 from inventory.models.orders import Order
 from django.db.models import Q
 
+from authentication.utils.permissions import permission_required
+
 
 @login_required
 def orders(request):
@@ -56,6 +58,7 @@ def order_details(request, order_id):
 
 
 @login_required
+@permission_required('is_operations')
 def cancel_order(request, order_id):
     order = Order.objects.get(id=order_id)
     order.cancel(request.user)
@@ -64,6 +67,7 @@ def cancel_order(request, order_id):
 
 
 @login_required
+@permission_required('is_operations')
 def change_status(request, order_id):
     order = Order.objects.get(id=order_id)
     status = request.POST.get('new_status', None)

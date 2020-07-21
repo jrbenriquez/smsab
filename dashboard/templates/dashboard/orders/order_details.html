@@ -45,6 +45,10 @@
               <p><span class="font-bold">Name:</span> {{order.buyer.provided_name}}</p>
               <p><span class="font-bold">Address:</span> {{order.buyer.address}}</p>
               <p><span class="font-bold">Contact:</span> {{order.buyer.contact_details}}</p>
+              <hr>
+              <h3>Item Details</h3>
+              <hr>
+              <p><span class="font-bold">Style ID:</span> {{order.stock.style_id}}</p>
               {% for param, value in order.stock.parameter_dict.items %}
               <p><span class="font-bold">{{param}}:</span> <span>{{value}}</span></p>
               {% endfor %}
@@ -79,12 +83,11 @@
          <form method="post" action="{% url 'dashboard:change_status' order_id=order.id %}">
       <div class="modal-body">
           <div>
-
             <select name="new_status"
                 class="appearance-none h-full rounded-r border-t sm:rounded-r-none sm:border-r-0 border-r border-b block appearance-none w-full bg-white border-gray-400 text-gray-700 py-2 px-4 pr-8 leading-tight focus:outline-none focus:border-l focus:border-r focus:bg-white focus:border-gray-500">
                 {% for id, status in order_class.OrderStatus.choices %}
                 {% if id != 6 %}
-                <option value="{{id}}" {% if id == current_status_filter %} selected{%endif%}>{{status}}</option>
+                <option value="{{id}}" {% if id == order.status %} selected{%endif%}>{{status}}</option>
                 {% endif %}
                 {% endfor %}
 
@@ -135,12 +138,12 @@
 
     <div class="mx-4 bg-white rounded-md shadow-md h-auto py-4 px-3">
     <div class="text-sm">
-        <p>Hai saya junior programer di Bali gatra</p>
-    <p>mencoba untuk mengclone facebook dengan Tailwind css</p>
+        <p>Notes per Order can be implemented in the future</p>
+    <p>It will behave like a comment box for the order for other staff to track</p>
     </div>
 
     <div class="flex justify-end">
-        <span class="font-bold mx-2">By: John Rei Enriquez</span>
+        <span class="font-bold mx-2">By: Dev</span>
         <span class="font-thin mx-2">3:58 PM July 5, 2020</span>
 
     </div>

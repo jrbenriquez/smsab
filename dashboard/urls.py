@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from authentication.views import set_cookie
-from dashboard.views.core import dashboard_home, login, logout
+from dashboard.views.core import dashboard_home, login, logout, activate_marketing, setup_password, activate_operations
 from dashboard.views.items import (item_list, item_detail, item_update_stock_quantity,
                                    item_update_event, remove_item_from_event, edit_item,
                                    stock_full_edit, new_stock, parameters, add_stock_param)
@@ -30,6 +30,9 @@ urlpatterns = [
     path('', dashboard_home, name="dashboard_home"),
     path('login/', login, name="login"),
     path('logout/', logout, name="logout"),
+    path('activate/marketing/', activate_marketing, name="activate_marketing"),
+    path('activate/operations/', activate_operations, name="activate_operations"),
+    path('activate/setup-password/', setup_password, name="setup_password"),
     path('items/<int:item_id>/edit/add_stock_param/', add_stock_param, name="add_stock_param"),
     path('items/<int:item_id>/edit/', edit_item, name="edit_item"),
     path('items/<int:item_id>/new/', new_stock, name="new_stock"),
@@ -49,8 +52,8 @@ urlpatterns = [
     path('events/view-items/<int:event_id>/', view_event_items, name="event_view_items"),
     path('events/remove-items/<int:event_id>/', remove_event_item, name="remove_event_item"),
     path('events/new/', new_event, name="new_event"),
-    path('orders/<int:order_id>/change-status', change_status, name="change_status"),
-    path('orders/<int:order_id>/cancel', cancel_order, name="cancel_order"),
+    path('orders/<int:order_id>/change-status/', change_status, name="change_status"),
+    path('orders/<int:order_id>/cancel/', cancel_order, name="cancel_order"),
     path('orders/<int:order_id>/', order_details, name="order_details"),
     path('orders/', orders, name="orders"),
 ]

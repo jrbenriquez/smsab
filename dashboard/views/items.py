@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.shortcuts import render, redirect, reverse
 from django.core.paginator import Paginator
+from authentication.utils.permissions import permission_required
 from api.serializers.items import ItemSerializer, ItemPhotoSerializer, ItemStockSerializer, ParameterTemplateSerializer
 from inventory.models.categories import Category
 from inventory.models.locations import Location
@@ -10,6 +11,7 @@ from inventory.models.items import ParameterTemplate, Item, Parameter, ItemStock
 
 
 @login_required
+@permission_required('is_marketing')
 def item_list(request):
     items = Item.objects.all()
     events = Event.objects.all()
@@ -43,6 +45,7 @@ def item_list(request):
 
 
 @login_required
+@permission_required('is_marketing')
 def item_update_stock_quantity(request, item_id):
     if request.method == 'POST':
         data = request.POST.copy()
@@ -65,6 +68,7 @@ def item_update_stock_quantity(request, item_id):
 
 
 @login_required
+@permission_required('is_marketing')
 def item_update_event(request, item_id):
     if request.method == 'POST':
         data = request.POST.copy()
@@ -79,6 +83,7 @@ def item_update_event(request, item_id):
 
 
 @login_required
+@permission_required('is_marketing')
 def remove_item_from_event(request, item_id):
     if request.method == 'POST':
         data = request.POST.copy()
@@ -92,6 +97,7 @@ def remove_item_from_event(request, item_id):
 
 
 @login_required
+@permission_required('is_marketing')
 def item_detail(request, item_id):
     item = Item.objects.get(id=item_id)
     categories = Category.objects.all()
@@ -111,6 +117,7 @@ def item_detail(request, item_id):
 
 
 @login_required
+@permission_required('is_marketing')
 def stock_full_edit(request, item_id, stock_id):
     item = Item.objects.get(id=item_id)
     stock = ItemStock.objects.get(id=stock_id)
@@ -194,6 +201,7 @@ def stock_full_edit(request, item_id, stock_id):
 
 
 @login_required
+@permission_required('is_marketing')
 def new_stock(request, item_id):
     item = Item.objects.get(id=item_id)
     categories = Category.objects.all()
@@ -287,9 +295,8 @@ def new_stock(request, item_id):
         return perform_create(serializer, data=request.POST, files=request.FILES)
 
 
-
-
 @login_required
+@permission_required('is_marketing')
 def edit_item(request, item_id):
     item = Item.objects.get(id=item_id)
     categories = Category.objects.all()
@@ -334,6 +341,7 @@ def edit_item(request, item_id):
 
 
 @login_required
+@permission_required('is_marketing')
 def parameters(request):
     items = Item.objects.all()
     page_number = request.GET.get('page')
@@ -375,6 +383,7 @@ def parameters(request):
 
 
 @login_required
+@permission_required('is_marketing')
 def add_stock_param(request, item_id):
     item = Item.objects.get(id=item_id)
     categories = Category.objects.all()
